@@ -1,0 +1,36 @@
+{
+  "name": "ngc-esbuild",
+  "version": "0.0.1",
+  "description": "Angular Esbuild Compiler",
+  "main": "./bin/index.js",
+  "bin": {
+    "ngc-esbuild": "./bin/index.js"
+  },
+  "scripts": {
+    "start": "node ./bin/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cherryApp/ngc-esbuild.git"
+  },
+  "keywords": [
+    "angular",
+    "esbuild",
+    "fast",
+    "building",
+    "applications"
+  ],
+  "author": "Joe Cserko",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cherryApp/ngc-esbuild/issues"
+  },
+  "homepage": "https://github.com/cherryApp/ngc-esbuild#readme",
+  "dependencies": {
+    "chokidar": "^3.5.2",
+    "esbuild": "^0.14.11",
+    "sass": "^1.47.0",
+    "ws": "^8.4.0"
+  }
+}
