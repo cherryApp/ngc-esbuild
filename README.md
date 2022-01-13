@@ -57,7 +57,20 @@ The package is in the early alpha version!
 
 This package is based on the esbuild.  
 Esbuild is an extremely fast builder for web projects, written in GoLang.  
-I extended esbuild with its plugin API and created some internal plugins. These plugins process .ts files, handle dependency injectors, unpack styles, etc.
+I extended esbuild with its plugin API and created some internal plugins.  
+These plugins process .ts files, handle dependency injectors, unpack styles, etc.
+
+## Limitations
+| build part | supported | notice |
+| --- | --- | --- |
+| `templateUrl` | `Yes` | move to import statement |
+| `styleUrls` | Partial | only one styleUrl |
+| `angular.json:styles` | `Yes` | move to main.css |
+| `angular.json:scripts` | `Yes` | move to vendor.js |
+| `dependency injection` | Partial | constructor must contain only injectable objects |
+| `loadChildren` | `Yes` | move to a separated file |
+| `assets` | `Yes` | copy to the output folder |
+
 
 ## Contributing 🍰
 
