@@ -1,7 +1,7 @@
 <div align="center">
   <br>
   <p>
-    <b>Angular Esbuild</b>
+    <h1>Angular Esbuild</h1>
   </p>
   <p>
      <i>Esbuild based Angular compiler</i>
