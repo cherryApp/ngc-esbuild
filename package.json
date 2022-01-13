@@ -1,13 +1,13 @@
 {
   "name": "ngc-esbuild",
-  "version": "0.0.1",
+  "version": "0.0.21",
   "description": "Angular Esbuild Compiler",
-  "main": "./bin/index.js",
+  "main": "index.js",
   "bin": {
     "ngc-esbuild": "./bin/index.js"
   },
   "scripts": {
-    "start": "node ./bin/index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
