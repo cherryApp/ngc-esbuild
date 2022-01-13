@@ -9,7 +9,6 @@
   <p>
 
 [![NPM version](https://img.shields.io/npm/v/ngc-esbuild?style=flat-square)](https://img.shields.io/npm/v/ngc-esbuild?style=flat-square)
-[![Package size](https://img.shields.io/bundlephobia/min/ngc-esbuild)](https://img.shields.io/bundlephobia/min/ngc-esbuild)
 
 
   </p>
