@@ -3,14 +3,13 @@
  */
 const path = require('path');
 const fs = require('fs');
-const { execFile } = require('child_process');
-const { promisify } = require('util');
-
-const execFileAsync = promisify(execFile);
 
 const chokidar = require('chokidar');
 const { build } = require('esbuild');
 const sass = require('sass');
+const yargs = require('yargs/yargs')
+const { hideBin } = require('yargs/helpers')
+const argv = yargs(hideBin(process.argv)).argv;
 
 const minimalLiveServer = require('./lib/minimal-server');
 const { log, convertMessage } = require('./lib/log');
@@ -63,7 +62,6 @@ module.exports = class NgEsbuild {
 
     this.initWatcher();
 
-    this.lazyModules = [];
   }
 
   initWatcher() {
@@ -97,8 +95,8 @@ module.exports = class NgEsbuild {
       outdir: this.outDir,
       splitting: true,
       format: 'esm',
-      minify: false,
-      sourcemap: false,
+      minify: argv.minify !== 'false',
+      sourcemap: argv.sourcemap !== 'false',
 
       write: !this.inMemory,
       treeShaking: true,
@@ -127,7 +125,8 @@ module.exports = class NgEsbuild {
       if (!this.liveServerIsRunning) {
         this.minimalServer = minimalLiveServer(
           `${this.outPath}/`,
-          this.inMemory ? this.inMemoryStore : null
+          this.inMemory ? this.inMemoryStore : null,
+          argv.port ? Number(argv.port) : 4200,
         );
         this.liveServerIsRunning = true;
       }
@@ -179,9 +178,9 @@ module.exports = class NgEsbuild {
 
     return (
       /\.css$/.test(scssPath)
-      ? fs.promises.readFile(scssPath, 'utf8')
-      : sass.compileAsync(scssPath, { includePaths: [workDir] })
-    ).then( async result => {
+        ? fs.promises.readFile(scssPath, 'utf8')
+        : sass.compileAsync(scssPath, { includePaths: [workDir] })
+    ).then(async result => {
       const css = result.css ? result.css.toString() : result;
       const content = await this.urlUnpacker(workDir, css);
       this.cssCache += this.cssCache += `\n\n${content}`;
@@ -198,7 +197,7 @@ module.exports = class NgEsbuild {
     );
   }
 
-  async urlUnpacker(workDir = '', content = '', ) {
+  async urlUnpacker(workDir = '', content = '',) {
     if (!/url\(['"]?([^\)'"\?]*)[\"\?\)]?/gm.test(content)) {
       return content;
     }

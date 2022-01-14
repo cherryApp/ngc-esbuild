@@ -4,7 +4,7 @@
     <h1>Angular Esbuild</h1>
   </p>
   <p>
-     <i>Esbuild based Angular compiler</i>
+     <i>Extremely Fast & Esbuild based Angular compiler</i>
   </p>
   <p>
 
@@ -19,8 +19,9 @@
 **Content**
 
 * [Features](##features)
-* [Install](##install)
+* [Installation](##install)
 * [Usage](##usage)
+* [Arguments](##arguments)
 * [Documentation](##documentation)
 * [Contributing](##contributing)
 * [Maintainers](##maintainers)
@@ -50,6 +51,20 @@ npm i ngc-esbuild
 ```powershell
 npm run esbuild
 ```
+* With arguments:
+```powershell
+"scripts": {
+  "esbuild": "ngc-esbuild --minify true --sourcemap false --port 6500 --open"
+}
+```
+
+## Arguments:  
+| name | values | |
+| --- | --- | --- |
+| `minify` | `true/false` | minify the output |
+| `sourcemap` | `true/false` | generate sourcemaps |
+| `port` | `<number>` | the port of the live-server |
+| `open` | no value | the default browser will be automatically open |
 
 ## Documentation 📄
 __WARNING!__  

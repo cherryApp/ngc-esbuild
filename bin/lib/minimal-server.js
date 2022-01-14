@@ -3,6 +3,9 @@ const http = require('http');
 const fs = require('fs');
 const { exec } = require('child_process');
 const path = require('path');
+const yargs = require('yargs/yargs')
+const { hideBin } = require('yargs/helpers')
+const argv = yargs(hideBin(process.argv)).argv;
 
 const { log, convertMessage } = require('./log');
 
@@ -120,11 +123,14 @@ module.exports = (
       }
     }
 
-  }).listen(4200);
-  log(`Angular running at http://127.0.0.1:${port}/`);
+  }).listen(port);
+  log(`Angular dev-server is running at http://127.0.0.1:${port}/`);
 
   const start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
-  exec(start + ` http://127.0.0.1:${port}/`);
+
+  if (argv.open) {
+    exec(start + ` http://127.0.0.1:${port}/`);
+  }
 
   return {
     server,
