@@ -4,7 +4,7 @@
     <h1>Angular Esbuild</h1>
   </p>
   <p>
-     <i>Extremely Fast & Esbuild based Angular compiler</i>
+     <i>Blazing Fast & Esbuild based Angular compiler</i>
   </p>
   <p>
 
