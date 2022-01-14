@@ -16,13 +16,15 @@ const cssResolver = (instance) => {
 
         const project = Object.entries(instance.angularSettings.projects)[0][1];
         const baseStylePaths = project.architect.build.options.styles;
+        const works = [];
         baseStylePaths.forEach((item = '') => {
           const itemPath = item.includes('/')
             ? path.join(instance.workDir, item)
             : path.join(instance.workDir, 'src', item);
-          instance.scssProcessor(itemPath);
+          works.push(instance.scssProcessor(itemPath));
         });
 
+        await Promise.all(works);
         const cssOutputPath = path.join(instance.outDir, `main.css`);
         await instance.store.fileWriter(cssOutputPath, instance.cssCache, 'utf8');
       });
