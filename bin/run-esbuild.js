@@ -3,6 +3,10 @@
  */
 const path = require('path');
 const fs = require('fs');
+const { execFile } = require('child_process');
+const { promisify } = require('util');
+
+const execFileAsync = promisify(execFile);
 
 const chokidar = require('chokidar');
 const { build } = require('esbuild');
@@ -43,10 +47,8 @@ module.exports = class NgEsbuild {
 
     this.outDir = path.join(this.workDir, this.outPath);
 
-
     this.store = new FileStore(this.inMemory, this.outPath);
     this.inMemoryStore = this.store.inMemoryStore;
-
 
     this.componentBuffer = {};
 
@@ -175,32 +177,51 @@ module.exports = class NgEsbuild {
   async scssProcessor(scssPath) {
     const workDir = path.dirname(scssPath);
 
-    const result = sass.renderSync({
-      file: scssPath,
-      includePaths: [workDir],
+    return (
+      /\.css$/.test(scssPath)
+      ? fs.promises.readFile(scssPath, 'utf8')
+      : sass.compileAsync(scssPath, { includePaths: [workDir] })
+    ).then( async result => {
+      const css = result.css ? result.css.toString() : result;
+      const content = await this.urlUnpacker(workDir, css);
+      this.cssCache += this.cssCache += `\n\n${content}`;
+      return true;
     });
+  }
 
-    let cssContent = result.css.toString();
+  async urlReplacer(content = '') {
+    await this.urlUnpacker();
+    // .+(\/.+)$
+    return content.replace(
+      /url.+\/([^ '"\)]+)['"\) ]*/gm,
+      `url('$1')`
+    );
+  }
 
-    const matches = cssContent.matchAll(/url\(['"]?([^\)'"\?]*)[\"\?\)]?/gm);
+  async urlUnpacker(workDir = '', content = '', ) {
+    if (!/url\(['"]?([^\)'"\?]*)[\"\?\)]?/gm.test(content)) {
+      return content;
+    }
+
+    const matches = content.matchAll(/url\(['"]?([^\)'"\?]*)[\"\?\)]?/gm);
     for (let match of matches) {
       if (!/data\:/.test(match[0])) {
         try {
           const sourcePath = path.join(workDir, match[1]);
           const fileName = path.basename(sourcePath);
           const targetPath = path.join(this.outDir, fileName);
-          this.store.fileCopierSync(
+          this.store.fileCopier(
             sourcePath,
             targetPath,
           );
-          cssContent = cssContent.replace(match[1], fileName);
+          content = content.replace(match[1], fileName);
         } catch (e) {
           console.error('ERROR: ', e);
         }
       }
     }
 
-    this.cssCache += `\n\n${cssContent}`;
+    return content;
   }
 
   /**
