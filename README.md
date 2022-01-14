@@ -18,13 +18,13 @@
 
 **Content**
 
-* [Features](##features)
-* [Installation](##install)
-* [Usage](##usage)
-* [Arguments](##arguments)
-* [Documentation](##documentation)
-* [Contributing](##contributing)
-* [Maintainers](##maintainers)
+* [Features](#features)
+* [Installation](#install)
+* [Usage](#usage)
+* [Arguments](#arguments)
+* [Documentation](#documentation)
+* [Contributing](#contributing)
+* [Maintainers](#maintainers)
 
 ## Features ✨
 * Build Angular projects
