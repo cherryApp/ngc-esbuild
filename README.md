@@ -19,7 +19,7 @@
 **Content**
 
 * [Features](#features)
-* [Installation](#install)
+* [Installation](##install)
 * [Usage](#usage)
 * [Arguments](#arguments)
 * [Documentation](#documentation)
