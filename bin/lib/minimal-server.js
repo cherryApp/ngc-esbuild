@@ -124,12 +124,12 @@ module.exports = (
     }
 
   }).listen(port);
-  log(`Angular dev-server is running at http://127.0.0.1:${port}/`);
+  log(`Angular dev-server is running at http://localhost:${port}/`);
 
   const start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
 
   if (argv.open) {
-    exec(start + ` http://127.0.0.1:${port}/`);
+    exec(start + ` http://localhost:${port}/`);
   }
 
   return {
