@@ -35,17 +35,13 @@ const cssResolver = (instance) => {
     name: 'angularCSSProcessor',
     async setup(build) {
 
-      build.onResolve({ filter: /(\.scss|\.css)$/ }, args => ({
-        path: path.resolve(args.resolveDir, args.path),
-        namespace: 'sass'
-      }));
-      build.onLoad({ filter: /.*/, namespace: 'sass' }, async args => {
-        const workDir = path.dirname(args.path);
+      const scssProcessor = (scssPath) => {
+        const workDir = path.dirname(scssPath);
 
         return (
-          /\.css$/.test(args.path)
-            ? fs.promises.readFile(args.path, 'utf8')
-            : sass.compileAsync(args.path, {
+          /\.css$/.test(scssPath)
+            ? fs.promises.readFile(scssPath, 'utf8')
+            : sass.compileAsync(scssPath, {
               includePaths: [workDir],
               importers: [{
                 findFileUrl(url) {
@@ -66,7 +62,15 @@ const cssResolver = (instance) => {
           const content = await urlUnpacker(instance, workDir, css);
           instance.cssCache += !content ? '' : `\n\n${content}`;
           return true;
-        }).then( () => ({contents: '', loader: 'text'}) );
+        })
+      };
+
+      build.onResolve({ filter: /(\.scss|\.css)$/ }, args => ({
+        path: path.resolve(args.resolveDir, args.path),
+        namespace: 'sass'
+      }));
+      build.onLoad({ filter: /.*/, namespace: 'sass' }, async args => {
+        return scssProcessor(args.path).then( () => ({contents: '', loader: 'text'}) );
       });
 
       build.onEnd(async () => {
@@ -83,7 +87,7 @@ const cssResolver = (instance) => {
           const itemPath = item.includes('/')
             ? path.join(instance.workDir, item)
             : path.join(instance.workDir, 'src', item);
-          works.push(instance.scssProcessor(itemPath));
+          works.push(scssProcessor(itemPath));
         });
 
         await Promise.all(works);
