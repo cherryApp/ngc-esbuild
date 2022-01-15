@@ -183,7 +183,7 @@ module.exports = class NgEsbuild {
     ).then(async result => {
       const css = result.css ? result.css.toString() : result;
       const content = await this.urlUnpacker(workDir, css);
-      this.cssCache += this.cssCache += `\n\n${content}`;
+      this.cssCache += `\n\n${content}`;
       return true;
     });
   }
