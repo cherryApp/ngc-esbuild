@@ -179,11 +179,26 @@ module.exports = class NgEsbuild {
     return (
       /\.css$/.test(scssPath)
         ? fs.promises.readFile(scssPath, 'utf8')
-        : sass.compileAsync(scssPath, { includePaths: [workDir] })
+        : sass.compileAsync(scssPath, {
+          includePaths: [workDir],
+          importers: [{
+            findFileUrl(url) {
+              if (!url.startsWith('~')) return null;
+              const importPath = path.join(
+                process.cwd(),
+                'node_modules',
+                url.substring(1)
+              ).replace(/^[^\:]*\:/, 'file:');
+              return new URL(importPath);
+            }
+          }]
+        })
     ).then(async result => {
-      const css = result.css ? result.css.toString() : result;
+      const css = typeof result.css !== 'undefined'
+        ? result.css.toString()
+        : result;
       const content = await this.urlUnpacker(workDir, css);
-      this.cssCache += `\n\n${content}`;
+      this.cssCache += !content ? '' : `\n\n${content}`;
       return true;
     });
   }
