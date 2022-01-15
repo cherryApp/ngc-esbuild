@@ -108,16 +108,10 @@ const angularComponentDecoratorPlugin = (instance) => {
               /^ *styleUrls *\: *\[['"]([^'"\]]*)/gm,
               source
             );
-            if (isScss(styleUrls)) {
-              await instance.scssProcessor(args.path.replace(/\.ts$/, '.scss'));
-            } else {
-              await instance.cssProcessor(args.path.replace(/\.ts$/, '.css'));
-            }
+            contents = `import '${styleUrls}';\n${contents}`;
           }
 
           contents = addInjects(contents);
-
-          // contents = await handleLoadChildren(args.path, contents, instance);
 
           contents = contents.replace(
             /^ *templateUrl *\: *['"]*([^'"]*)['"]/gm,
