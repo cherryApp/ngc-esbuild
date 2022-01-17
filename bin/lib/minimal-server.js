@@ -9,22 +9,26 @@ const argv = yargs(hideBin(process.argv)).argv;
 
 const { log, convertMessage } = require('./log');
 
+const serverOptions = {
+  root: process.cwd(), // root of the file-server
+  fileBuffer: {}, // http port
+  port: 4200, // websocket port
+  socketPort: 8080, // a buffer to loading files from the memory
+  open: false, // open in the default browser
+};
+
 /**
    * Minimal live-server for developing purposes.
-   * @param {String} root root of the file-server
-   * @param {Number} port http port
-   * @param {Number} socketPort websocket port
-   * @param {Object} fileBuffer a buffer to loading files from the memory
+   * @param {serverOptions} options
    * @returns an object with the server and websocket-server instances
    */
 module.exports = (
-  root = process.cwd(),
-  fileBuffer = {},
-  port = 4200,
-  socketPort = 8080,
+  options = serverOptions
 ) => {
 
-  const wss = new WebSocketServer({ port: socketPort });
+  options = {...serverOptions, ...options};
+
+  const wss = new WebSocketServer({ port: options.socketPort });
   wss.on('connection', function connection(ws) {
     ws.on('message', function message(data) {
       log('received: %s', data);
@@ -56,9 +60,9 @@ module.exports = (
     "Access-Control-Max-Age": 0, // No Cache
   };
 
-  const resolveIndexPage = async (response) => {
+  const resolveIndexPage = async (options, response) => {
     let content = await fs.promises.readFile(
-      path.join(root, 'index.html'),
+      path.join(options.root, 'index.html'),
       'utf8'
     );
     content = content.replace(/\<\/body\>/g, `${clientScript}\n</body>`);
@@ -70,17 +74,17 @@ module.exports = (
 
     let filePath = '.' + request.url;
     if (filePath == './') {
-      return resolveIndexPage(response);
+      return resolveIndexPage(options, response);
     } else {
-      filePath = path.join(root, request.url);
+      filePath = path.join(options.root, request.url);
       isIndexPage = false;
     }
     filePath = filePath.split('?')[0];
 
     const absPath = path.resolve(filePath);
     let inMemoryFile = null;
-    if (fileBuffer && fileBuffer[absPath]) {
-      inMemoryFile = fileBuffer[absPath];
+    if (options.fileBuffer && options.fileBuffer[absPath]) {
+      inMemoryFile = options.fileBuffer[absPath];
     }
 
     var extname = String(path.extname(filePath)).toLowerCase();
@@ -123,13 +127,13 @@ module.exports = (
       }
     }
 
-  }).listen(port);
-  log(`Angular dev-server is running at http://localhost:${port}/`);
+  }).listen(options.port);
+  log(`Angular dev-server is running at http://localhost:${options.port}/`);
 
   const start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
 
-  if (argv.open) {
-    exec(start + ` http://localhost:${port}/`);
+  if (options.open === true) {
+    exec(start + ` http://localhost:${options.port}/`);
   }
 
   return {

@@ -2,4 +2,8 @@
 
 const NgEsbuild = require('./bin/run-esbuild');
 
-new NgEsbuild();
+if (require.main === module) {
+  new NgEsbuild();
+}
+
+module.exports = NgEsbuild;

@@ -24,9 +24,20 @@ const settingsResolver = require('./plugin/esbuild-settings-resolver');
 const cssResolver = require('./plugin/esbuild-css-resolver');
 const jsResolver = require('./plugin/esbuild-js-resolver');
 
+const esbuildOptions = {
+  main: 'src/main.ts',
+  outpath: 'dist/esbuild',
+  minify: false,
+  sourcemap: false,
+  port: 4200,
+  open: false,
+};
 
 module.exports = class NgEsbuild {
-  constructor() {
+  constructor(options = esbuildOptions) {
+
+    this.options = {...options, ...(argv || {})};
+    this.options.open = Boolean(this.options.open);
 
     this.inMemory = false;
 
@@ -40,7 +51,7 @@ module.exports = class NgEsbuild {
 
     this.angularSettings = {};
 
-    this.outPath = 'dist/esbuild';
+    this.outPath = this.options.outpath;
 
     this.workDir = process.cwd();
 
@@ -88,15 +99,15 @@ module.exports = class NgEsbuild {
   builder() {
     this.buildInProgress = true;
     esBuilder({
-      entryPoints: ['src/main.ts'],
+      entryPoints: [this.options.main],
       bundle: true,
       // outfile: path.join(this.outDir, 'main.js'),
 
       outdir: this.outDir,
       splitting: true,
       format: 'esm',
-      minify: argv.minify !== 'false',
-      sourcemap: argv.sourcemap !== 'false',
+      minify: this.options.minify !== 'false',
+      sourcemap: this.options.sourcemap !== 'false',
 
       write: !this.inMemory,
       treeShaking: true,
@@ -123,11 +134,12 @@ module.exports = class NgEsbuild {
       }
 
       if (!this.liveServerIsRunning) {
-        this.minimalServer = minimalLiveServer(
-          `${this.outPath}/`,
-          this.inMemory ? this.inMemoryStore : null,
-          argv.port ? Number(argv.port) : 4200,
-        );
+        this.minimalServer = minimalLiveServer({
+          root: `${this.outPath}/`,
+          fileBuffer: this.inMemory ? this.inMemoryStore : null,
+          port: this.options.port ? Number(this.options.port) : 4200,
+          open: this.options.open,
+        });
         this.liveServerIsRunning = true;
       }
       this.buildInProgress = false;
@@ -167,69 +179,6 @@ module.exports = class NgEsbuild {
       this.times[0] = new Date().getTime();
       this.builder();
     }, 500);
-  }
-
-  /**
-   * Process .scss and .css files.
-   * @param {String} scssPath path of the scss file
-   */
-  async scssProcessor(scssPath) {
-    const workDir = path.dirname(scssPath);
-
-    return (
-      /\.css$/.test(scssPath)
-        ? fs.promises.readFile(scssPath, 'utf8')
-        : sass.compileAsync(scssPath, { includePaths: [workDir] })
-    ).then(async result => {
-      const css = result.css ? result.css.toString() : result;
-      const content = await this.urlUnpacker(workDir, css);
-      this.cssCache += this.cssCache += `\n\n${content}`;
-      return true;
-    });
-  }
-
-  async urlReplacer(content = '') {
-    await this.urlUnpacker();
-    // .+(\/.+)$
-    return content.replace(
-      /url.+\/([^ '"\)]+)['"\) ]*/gm,
-      `url('$1')`
-    );
-  }
-
-  async urlUnpacker(workDir = '', content = '',) {
-    if (!/url\(['"]?([^\)'"\?]*)[\"\?\)]?/gm.test(content)) {
-      return content;
-    }
-
-    const matches = content.matchAll(/url\(['"]?([^\)'"\?]*)[\"\?\)]?/gm);
-    for (let match of matches) {
-      if (!/data\:/.test(match[0])) {
-        try {
-          const sourcePath = path.join(workDir, match[1]);
-          const fileName = path.basename(sourcePath);
-          const targetPath = path.join(this.outDir, fileName);
-          this.store.fileCopier(
-            sourcePath,
-            targetPath,
-          );
-          content = content.replace(match[1], fileName);
-        } catch (e) {
-          console.error('ERROR: ', e);
-        }
-      }
-    }
-
-    return content;
-  }
-
-  /**
-   * Read .css content and add it to the cache.
-   * @param {String} cssPath path of the .css file
-   */
-  async cssProcessor(cssPath) {
-    const result = await fs.promises.readFile(cssPath, 'utf8');
-    this.cssCache += `\n\n${result}`;
   }
 
 };
