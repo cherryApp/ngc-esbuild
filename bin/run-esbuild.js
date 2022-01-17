@@ -128,7 +128,7 @@ module.exports = class NgEsbuild {
       // outfile: path.join(this.outDir, 'main.js'),
 
       outdir: this.outDir,
-      splitting: true,
+      splitting: this.options.format === 'esm',
       format: this.options.format,
       minify: this.options.minify !== 'false',
       sourcemap: this.options.sourcemap !== 'false',
