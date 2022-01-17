@@ -34,6 +34,7 @@ const esbuildOptions = {
   open: false,
   serve: true,
   watch: true,
+  tsconfig: null,
 };
 
 module.exports = class NgEsbuild {
@@ -143,6 +144,7 @@ module.exports = class NgEsbuild {
         assetsResolver(this),
       ],
       preserveSymlinks: true,
+      tsconfig: this.options.tsconfig,
     }).then(result => {
       if (result.outputFiles) {
         result.outputFiles.forEach(file => {
