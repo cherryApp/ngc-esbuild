@@ -32,6 +32,7 @@ const esbuildOptions = {
   port: 4200,
   open: false,
   serve: true,
+  watch: true,
 };
 
 module.exports = class NgEsbuild {
@@ -72,15 +73,30 @@ module.exports = class NgEsbuild {
 
     this.buildTimeout = 0;
 
-    this.initWatcher();
+    this.resolver;
+    this.rejector;
+    this.resolve = new Promise( (resolve, reject) => {
+      this.resolver = resolve;
+      this.rejector = reject;
+    });
+
+    this.initOutputDirectory();
+
+    if (this.options.watch) {
+      this.initWatcher();
+    } else {
+      this.startBuild();
+    }
 
   }
 
-  initWatcher() {
+  initOutputDirectory() {
     if (!this.inMemory && !fs.existsSync(this.outDir)) {
       fs.mkdirSync(this.outDir, { recursive: true });
     }
+  }
 
+  initWatcher() {
     const watcher = chokidar.watch([
       'src/**/*.(css|scss|less|sass|js|ts|tsx|html)',
       'angular.json'
@@ -143,14 +159,22 @@ module.exports = class NgEsbuild {
         });
         this.liveServerIsRunning = true;
       }
+
+      if (this.minimalServer) {
+        this.minimalServer.broadcast('location:refresh');
+      }
+
       this.buildInProgress = false;
-      this.minimalServer.broadcast('location:refresh');
       this.lastUpdatedFileList = [];
       this.cssCache = '';
       this.dryRun = false;
 
       this.times[1] = new Date().getTime();
       log(`EsBuild complete in ${this.times[1] - this.times[0]}ms`);
+
+      if (!this.options.watch) {
+        this.resolver(result);
+      }
     });
   }
 
