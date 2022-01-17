@@ -34,6 +34,7 @@ const esbuildOptions = {
   open: false,
   serve: true,
   watch: true,
+  format: 'esm',
   tsconfig: null,
 };
 
@@ -128,7 +129,7 @@ module.exports = class NgEsbuild {
 
       outdir: this.outDir,
       splitting: true,
-      format: 'esm',
+      format: this.options.format,
       minify: this.options.minify !== 'false',
       sourcemap: this.options.sourcemap !== 'false',
 
