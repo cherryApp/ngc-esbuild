@@ -38,6 +38,7 @@ const getValueByPattern = (regex = new RegExp(''), str = '') => {
 * @returns the new conent that changed
 */
 const addInjects = (contents) => {
+
   if (/constructor *\(([^\)]*)/gm.test(contents)) {
     let requireInjectImport = false;
     const matches = contents.matchAll(/constructor *\(([^\)]*)/gm);
@@ -47,7 +48,7 @@ const addInjects = (contents) => {
         let flat = match[1].replace(/[\n\r]/gm, '');
         const flatArray = flat.split(',').map(inject => {
           const parts = inject.split(':');
-          return parts.length === 2
+          return parts.length === 2 && !/\@Inject/.test(inject)
             ? `@Inject(${parts[1]}) ${inject}`
             : inject;
         });
@@ -76,7 +77,7 @@ const angularComponentDecoratorPlugin = (instance) => {
   return {
     name: 'angularComponentProcessor',
     async setup(build) {
-      build.onLoad({ filter: /src.*\.(component|pipe|service|directive|module)\.ts$/ }, async (args) => {
+      build.onLoad({ filter: /src.*\.(component|pipe|service|directive|guard|module)\.ts$/ }, async (args) => {
         // Check the cache.
         if (!instance.lastUpdatedFileList.includes(args.path) && instance.componentBuffer[args.path]) {
           return { contents: instance.componentBuffer[args.path], loader: 'ts' };
@@ -107,16 +108,10 @@ const angularComponentDecoratorPlugin = (instance) => {
               /^ *styleUrls *\: *\[['"]([^'"\]]*)/gm,
               source
             );
-            if (isScss(styleUrls)) {
-              await instance.scssProcessor(args.path.replace(/\.ts$/, '.scss'));
-            } else {
-              await instance.cssProcessor(args.path.replace(/\.ts$/, '.css'));
-            }
+            contents = `import '${styleUrls}';\n${contents}`;
           }
 
           contents = addInjects(contents);
-
-          // contents = await handleLoadChildren(args.path, contents, instance);
 
           contents = contents.replace(
             /^ *templateUrl *\: *['"]*([^'"]*)['"]/gm,
