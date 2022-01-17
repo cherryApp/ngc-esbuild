@@ -35,7 +35,7 @@ const esbuildOptions = {
   serve: true,
   watch: true,
   format: 'esm',
-  tsconfig: null,
+  tsconfig: 'tsconfig.json',
 };
 
 module.exports = class NgEsbuild {
