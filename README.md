@@ -78,10 +78,26 @@ npm run esbuild
 }
 ```
 
+- From nodejs:
+```javascript
+const NgcEsbuild = require('ngc-esbuild');
+
+new NgcEsbuild({
+  main: 'src/main.ts',
+  outpath: 'dist/es2',
+  minify: true,
+  open: false,
+  port: 9855,
+  sourcemap: true,
+});
+```
+
 ## Arguments:
 
 | name        | values       |                                                |
 | ----------- | ------------ | ---------------------------------------------- |
+| `main`      | `<string>`   | the path of the main file (def: src/main.ts    |
+| `outpath`   | `<string>`   | the path of the output dir. (def: dist/esbuild |
 | `minify`    | `true/false` | minify the output                              |
 | `sourcemap` | `true/false` | generate sourcemaps                            |
 | `port`      | `<number>`   | the port of the live-server                    |
