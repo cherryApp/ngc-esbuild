@@ -35,18 +35,26 @@
    serve: true,
    watch: true,
    format: 'esm',
-   tsconfig: 'tsconfig.json',
+   tsconfig: null,
  };
  
  module.exports = class NgEsbuild {
    constructor(options = esbuildOptions) {
  
-     this.options = {...options, ...(argv || {})};
+     this.options = { ...options, ...(argv || {}) };
      this.options.open = Boolean(this.options.open);
  
      this.entryPoints = Array.isArray(this.options.main)
        ? this.options.main
        : [this.options.main];
+ 
+     for (const key of Object.keys(this.options)) {
+       if (this.options[key] === null) {
+         delete this.options[key];
+       }
+     }
+ 
+     log('OPTIONS: ', this.options);
  
      this.inMemory = false;
  
@@ -82,7 +90,7 @@
  
      this.resolver;
      this.rejector;
-     this.resolve = new Promise( (resolve, reject) => {
+     this.resolve = new Promise((resolve, reject) => {
        this.resolver = resolve;
        this.rejector = reject;
      });
