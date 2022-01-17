@@ -124,6 +124,8 @@ These plugins process .ts files, handle dependency injectors, unpack styles, etc
 | `dependency injection` | Partial   | constructor must contain only injectable objects |
 | `loadChildren`         | `Yes`     | move to a separated file                         |
 | `assets`               | `Yes`     | copy to the output folder                        |
+| `scss :root`           | `No`      | angular pseudo-selectors are not supported yet   |
+| `less`                 | `No`      | less stylesheets are not supported yet           |
 
 ## Contributing 🍰
 
