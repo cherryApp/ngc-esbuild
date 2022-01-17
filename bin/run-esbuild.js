@@ -54,8 +54,6 @@
        }
      }
  
-     log('OPTIONS: ', this.options);
- 
      this.inMemory = false;
  
      this.timeStamp = new Date().getTime();
