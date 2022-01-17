@@ -43,6 +43,10 @@ module.exports = class NgEsbuild {
     this.options = {...options, ...(argv || {})};
     this.options.open = Boolean(this.options.open);
 
+    this.entryPoints = Array.isArray(this.options.main)
+      ? this.options.main
+      : [this.options.main];
+
     this.inMemory = false;
 
     this.timeStamp = new Date().getTime();
@@ -118,7 +122,7 @@ module.exports = class NgEsbuild {
   builder() {
     this.buildInProgress = true;
     esBuilder({
-      entryPoints: [this.options.main],
+      entryPoints: this.entryPoints,
       bundle: this.options.bundle,
       // outfile: path.join(this.outDir, 'main.js'),
 
