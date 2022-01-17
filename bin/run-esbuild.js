@@ -25,6 +25,7 @@ const cssResolver = require('./plugin/esbuild-css-resolver');
 const jsResolver = require('./plugin/esbuild-js-resolver');
 
 const esbuildOptions = {
+  bundle: true,
   main: 'src/main.ts',
   outpath: 'dist/esbuild',
   minify: false,
@@ -117,7 +118,7 @@ module.exports = class NgEsbuild {
     this.buildInProgress = true;
     esBuilder({
       entryPoints: [this.options.main],
-      bundle: true,
+      bundle: this.options.bundle,
       // outfile: path.join(this.outDir, 'main.js'),
 
       outdir: this.outDir,
