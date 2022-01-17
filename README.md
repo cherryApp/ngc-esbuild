@@ -89,6 +89,7 @@ new NgcEsbuild({
   open: false,
   port: 9855,
   sourcemap: true,
+  serve: true,
 });
 ```
 
@@ -101,7 +102,8 @@ new NgcEsbuild({
 | `minify`    | `true/false` | minify the output                              |
 | `sourcemap` | `true/false` | generate sourcemaps                            |
 | `port`      | `<number>`   | the port of the live-server                    |
-| `open`      | no value     | the default browser will be automatically open |
+| `serve`     | `true/false` | live-server will be run                        |
+| `open`      | `true/false` | the default browser will be automatically open |
 
 ## Documentation 📄
 

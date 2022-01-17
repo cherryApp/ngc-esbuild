@@ -31,6 +31,7 @@ const esbuildOptions = {
   sourcemap: false,
   port: 4200,
   open: false,
+  serve: true,
 };
 
 module.exports = class NgEsbuild {
@@ -133,7 +134,7 @@ module.exports = class NgEsbuild {
         });
       }
 
-      if (!this.liveServerIsRunning) {
+      if (!this.liveServerIsRunning && this.options.serve) {
         this.minimalServer = minimalLiveServer({
           root: `${this.outPath}/`,
           fileBuffer: this.inMemory ? this.inMemoryStore : null,
