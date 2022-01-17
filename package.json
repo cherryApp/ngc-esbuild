@@ -1,6 +1,6 @@
 {
   "name": "ngc-esbuild",
-  "version": "0.0.47",
+  "version": "0.0.48",
   "description": "Angular Esbuild Compiler",
   "main": "index.js",
   "bin": {
