@@ -117,7 +117,7 @@ module.exports = (
       response.end(content);
     } catch (e) {
       if (e.code == 'ENOENT') {
-        resolveIndexPage(response);
+        resolveIndexPage(options, response);
         // log('ENOENT: ', fileBuffer ? Object.keys(fileBuffer) : e);
         // response.writeHead(404, ({ ...headers, 'Content-Type': 'text/html' }));
         // response.end('Page Not Found!', 'utf8');
