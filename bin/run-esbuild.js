@@ -136,8 +136,8 @@
        outdir: this.outDir,
        splitting: this.options.format === 'esm',
        format: this.options.format,
-       minify: this.options.minify !== 'false',
-       sourcemap: this.options.sourcemap !== 'false',
+       minify: this.options.minify,
+       sourcemap: this.options.sourcemap,
  
        write: !this.inMemory,
        treeShaking: true,
