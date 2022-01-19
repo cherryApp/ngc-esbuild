@@ -4,6 +4,22 @@ const sass = require('sass');
 
 const { log, convertMessage } = require('../lib/log');
 
+const importUrlResolvers = (instance) => {
+  return [{
+    findFileUrl(url) {
+      if (/\./.test(url)) return null;
+      url = url.replace(/^\~/, '');
+      const importPath = path.join(
+        instance.workDir,
+        'node_modules',
+        url,
+      ).replace(/^[^\:]*\:/, 'file:');
+      log('PATH: ', importPath);
+      return new URL(importPath);
+    }
+  }];
+};
+
 const urlUnpacker = (instance, workDir = '', content = '',) => {
   if (!/url\(['"]?([^\)'"\?]*)[\"\?\)]?/gm.test(content)) {
     return content;
@@ -45,23 +61,13 @@ const cssResolver = (instance) => {
               includePaths: [
                 path.resolve(instance.workDir, 'node_modules')
               ],
-              importers: [{
-                findFileUrl(url) {
-                  if (!url.startsWith('~')) return null;
-                  const importPath = path.join(
-                    instance.workDir,
-                    'node_modules',
-                    url.substring(1)
-                  ).replace(/^[^\:]*\:/, 'file:');
-                  return new URL(importPath);
-                }
-              }]
+              importers: importUrlResolvers(instance),
             })
         ).then(async result => {
           const css = typeof result.css !== 'undefined'
             ? result.css.toString()
             : result;
-          const content = await urlUnpacker(instance, workDir, css);
+          const content = urlUnpacker(instance, workDir, css);
           instance.cssCache += !content ? '' : `\n\n${content}`;
           return true;
         })
