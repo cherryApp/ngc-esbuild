@@ -9,6 +9,7 @@ module.exports = class FileStore {
   constructor(inMemory = true, outPath = '') {
     this.inMemory = inMemory;
     this.outPath = outPath;
+    this.fileCache = {};
     this.inMemoryStore = {
       urlList: {},
     };
@@ -42,7 +43,7 @@ module.exports = class FileStore {
 
   async fileCopier(srcPath, destPath) {
     if (!this.inMemory) {
-      await fs.promises.copyFile(srcPath, destPath);
+      return this.copyFile(srcPath, destPath);
     } else {
       const content = await fs.promises.readFile(srcPath);
       this.pushToInMemoryStore(destPath, content);
@@ -58,6 +59,59 @@ module.exports = class FileStore {
     }
   }
 
+  copyFile(source, target) {
+    return new Promise( (resolve, reject) => {
+      var rd = fs.createReadStream(source);
+      rd.on("error", function(err) {
+        reject(err);
+      });
+      var wr = fs.createWriteStream(target);
+      wr.on("error", function(err) {
+        reject(err);
+      });
+      wr.on("close", function(ex) {
+        resolve();
+      });
+      rd.pipe(wr);
+    });
+  }
+
+  getCachedFile(srcPath = '', coding = 'utf8') {
+    if (!this.fileCache[srcPath]) {
+      return new Promise( async (resolve, reject) => {
+        this.fileCache[srcPath] = await fs.promises.readFile(
+          srcPath,
+          coding === 'json' ? 'utf8' : coding,
+        );
+
+        if (coding === 'json') {
+          this.fileCache[srcPath] = JSON.parse(this.fileCache[srcPath]);
+        }
+        resolve(this.fileCache[srcPath]);
+      });
+    }
+    
+    return Promise.resolve(this.fileCache[srcPath]);
+  }
+
+  async copyFromList(list = [], dest = '') {
+    const processes = [];
+    for (const file of list) {
+      if (/^.*\.[a-zA-Z]{1,5}$/.test(file)) {
+        processes.push(this.copyFile(
+          file,
+          path.join(dest, path.basename(file)),
+        ));
+      } else {
+        processes.push(this.copyDir(file, dest));
+      }
+    }
+
+    await Promise.all(processes);
+
+    return true;
+  }
+
   /**
      * Copy whole directories.
      * @param {String} src path of the source directory
@@ -70,13 +124,19 @@ module.exports = class FileStore {
 
     let entries = await fs.promises.readdir(src, { withFileTypes: true });
 
+    const processes = [];
+
     for (let entry of entries) {
       let srcPath = path.join(src, entry.name);
       let destPath = path.join(dest, entry.name);
 
       entry.isDirectory() ?
-        await this.copyDir(srcPath, destPath) :
-        await this.fileCopier(srcPath, destPath);
+        processes.push(this.copyDir(srcPath, destPath)) :
+        processes.push(this.copyFile(srcPath, destPath));
     }
+
+    await Promise.all(processes);
+
+    return true;
   }
 }

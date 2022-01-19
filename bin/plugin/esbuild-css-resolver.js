@@ -42,7 +42,9 @@ const cssResolver = (instance) => {
           /\.css$/.test(scssPath)
             ? fs.promises.readFile(scssPath, 'utf8')
             : sass.compileAsync(scssPath, {
-              includePaths: [workDir],
+              includePaths: [
+                path.resolve(instance.workDir, 'node_modules')
+              ],
               importers: [{
                 findFileUrl(url) {
                   if (!url.startsWith('~')) return null;
@@ -80,10 +82,10 @@ const cssResolver = (instance) => {
 
         let cache = '';
 
-        const project = Object.entries(instance.angularSettings.projects)[0][1];
-        const baseStylePaths = project.architect.build.options.styles;
+        const options = await instance.getBuilderOptions();
+
         const works = [];
-        baseStylePaths.forEach((item = '') => {
+        (options.styles || []).forEach((item = '') => {
           const itemPath = item.includes('/')
             ? path.join(instance.workDir, item)
             : path.join(instance.workDir, 'src', item);

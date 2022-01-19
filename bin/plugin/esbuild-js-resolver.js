@@ -12,13 +12,10 @@ const jsResolver = (instance) => {
           return;
         }
 
-        let cache = `const __esbuild_require__ = (url) => {
-          return import(url);
-        }`;
+        let cache = '';
 
-        const project = Object.entries(instance.angularSettings.projects)[0][1];
-        const baseStylePaths = project.architect.build.options.scripts;
-        baseStylePaths.forEach((item = '') => {
+        const options = await instance.getBuilderOptions();
+        options.scripts.forEach((item = '') => {
           const itemPath = item.includes('/')
             ? path.join(instance.workDir, item)
             : path.join(instance.workDir, 'src', item);
