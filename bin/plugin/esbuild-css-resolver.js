@@ -8,14 +8,11 @@ const importUrlResolvers = (instance) => {
   return [{
     findFileUrl(url) {
       if (/\./.test(url)) return null;
-      url = url.replace(/^\~/, '');
-      const importPath = path.join(
+      return new URL(path.join(
         instance.workDir,
         'node_modules',
-        url,
-      ).replace(/^[^\:]*\:/, 'file:');
-      log('PATH: ', importPath);
-      return new URL(importPath);
+        url.replace(/^\~/, ''),
+      ).replace(/^[^\:]*\:/, 'file:'));
     }
   }];
 };
