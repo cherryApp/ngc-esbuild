@@ -135,7 +135,8 @@ These plugins process .ts files, handle dependency injectors, unpack styles, etc
 ## Contributing 🍰
 
 Thank you to all the people who contributed to this project!
-You feel free to send pull requests.
+You feel free to send pull requests.  
+[Contributing Guide](CONTRIBUTING.md)
 
 ## Maintainers 👷
 
