@@ -15,6 +15,7 @@ const minimalLiveServer = require('./lib/minimal-server');
 const { log, convertMessage } = require('./lib/log');
 const FileStore = require('./lib/file-store');
 const esBuilder = require('./lib/builder');
+const { schema, validate } = require('./lib/options-parser');
 
 const zoneJsPlugin = require('./plugin/esbuild-plugin-zonejs');
 const indexFileProcessor = require('./plugin/esbuild-index-file-processor');
@@ -43,7 +44,9 @@ const esbuildOptions = {
 module.exports = class NgEsbuild {
   constructor(options = esbuildOptions) {
 
-    this.options = { ...options, ...(argv || {}) };
+    this.options = validate({ ...esbuildOptions, ...options });
+    log(this.options);
+    process.exit();
     this.options.open = Boolean(this.options.open);
 
     this.entryPoints = Array.isArray(this.options.main)
