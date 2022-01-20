@@ -122,10 +122,8 @@ module.exports = class NgEsbuild {
     return this.builderOptions;
   }
 
-  initOutputDirectory() {
-    if (!this.inMemory && !fs.existsSync(this.outDir)) {
-      fs.mkdirSync(this.outDir, { recursive: true });
-    }
+  async initOutputDirectory() {
+    await fs.promises.rm(this.outDir, {recursive: true, force: true});
   }
 
   initWatcher() {

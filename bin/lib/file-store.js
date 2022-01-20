@@ -63,11 +63,11 @@ module.exports = class FileStore {
     return new Promise( (resolve, reject) => {
       var rd = fs.createReadStream(source);
       rd.on("error", function(err) {
-        reject(err);
+        resolve(err);
       });
       var wr = fs.createWriteStream(target);
       wr.on("error", function(err) {
-        reject(err);
+        resolve(err);
       });
       wr.on("close", function(ex) {
         resolve();
@@ -100,7 +100,7 @@ module.exports = class FileStore {
       if (/^.*\.[a-zA-Z]{1,5}$/.test(file)) {
         processes.push(this.copyFile(
           file,
-          path.join(dest, path.basename(file)),
+          dest,
         ));
       } else {
         processes.push(this.copyDir(file, dest));
