@@ -521,8 +521,8 @@ const validate = (esbuildOptions) => {
     }
 
     // Parsing arguments.
-    const options = {};
     const args = argv(process.argv.slice(2)).argv;
+    const options = { ...args, ...esbuildOptions  };
     const keys = Object.keys(schema.properties);
     for (const key of keys) {
         const prop = schema.properties[key];
