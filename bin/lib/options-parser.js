@@ -515,49 +515,134 @@ const schema = {
     }
 };
 
-const validate = (esbuildOptions) => {
+const esbuildOptions = {
+    entryPoints: ['src/main.ts'], // main
+    bundle: true, // true|false
+    outfile: 'dist/main.js', // string
+    outdir: 'dist/esbuild', // outpath
+    external: [], // eg: ['fsevents']
+    format: 'esm', // iife, cjs, or esm
+    inject: [], // eg: ['./process-shim.js']
+    loader: {
+        '.html': 'text',
+        '.css': 'text',
+    },
+    minify: true, // true|false
+    platform: 'browser', // node|browser|neutral
+    sourcemap: true, // true|false|'external'|'inline'|'both'
+    splitting: true, // true|false
+    target: ['chrome58'], // ['es2020', 'chrome58', 'firefox57',  'safari11',  'edge16',  'node12',],
+    watch: true, // true|false|object
+    write: true, // true|false
+    allowOverwrite: true, // true|false
+    metafile: false, // true|false - for the analyze feature
+    treeShaking: true, // true|false
+    tsconfig: 'tsconfig.json', // string
+    tsconfigRaw: ``,
+    absWorkingDir: process.cwd(), // string: a file-system path
+
+    // Currently not used:
+    // assetNames: 'assets/[name]-[hash]', 
+    // require('esbuild').serve ...
+    // banner: { js: '//comment', css: '/*comment*/', },
+    // charset: 'utf8',
+    // chunkNames: 'chunks/[name]-[hash]',
+    // color: true,
+    // conditions: ['custom1', 'custom2'],
+    // drop: ['debugger'],
+    // entryNames: '[dir]/[name]-[hash]',
+    // footer: { js: '//comment', css: '/*comment*/', },
+    // globalName: 'xyz',
+    // ignoreAnnotations: true,
+    // incremental: true,
+    // legalComments: 'eof',
+    // logLevel: 'error',
+    // logLimit: 0,
+    // nodePaths: ['someDir'],
+    // outExtension: { '.js': '.mjs' },
+    // outbase: 'src',
+    // preserveSymlinks: true,
+    // publicPath: 'https://www.example.com/v1',
+    // pure: ['console.log'],
+    // resolveExtensions: ['.ts', '.js'],
+    // sourceRoot: 'https://raw.githubusercontent.com/some/repo/v1.2.3/',
+    // sourcefile: 'example.js',
+    // "sourcesContent": ["bar()", "foo()\nimport './bar'"],
+    // !!! stdin: {}
+};
+
+const customOptions = {
+    port: 4200, // live-server port
+    open: false, // open in default browser
+    serve: true, // start the live-server
+    project: '', // project name from the angular.json file
+    mode: 'build', // angular.json architect->[mode], build|test|serve ...
+};
+
+const cleanOptions = (options = {}) => {
+    for (const k in options) {
+        if (typeof options[k] === 'undefined' || options[k] === 'undefined') {
+            delete options[k];
+        }
+    }
+
+    return options;
+}
+
+const arrayUnique = (value, index, self) => {
+    return self.indexOf(value) === index;
+};
+
+const checkType = (key, value, type) => {
+    switch (type) {
+        case 'boolean':
+            return (value === 'true' || value === true);
+            break;
+        case 'number':
+            const v = parseInt(value)
+            return isNaN(v) ? 'undefined' : v;
+            break;
+        case 'string':
+            return String(value);
+            break;
+        default:
+            return value;
+    }
+}
+
+const normalizeArguments = (options = esbuildOptions) => {
+    const baseOptions = { ...esbuildOptions, ...customOptions };
+    options = { ...baseOptions, ...options };
     if (require.main === module) {
-        return esbuildOptions;
+        return cleanOptions(options);
     }
 
     // Parsing arguments.
     const args = argv(process.argv.slice(2)).argv;
-    const options = { ...args, ...esbuildOptions  };
-    const keys = Object.keys(schema.properties);
+    console.log('ARGS: ', args)
+    const keys = Object.keys({ ...options, ...schema.properties, ...args });
     for (const key of keys) {
         const prop = schema.properties[key];
-        switch (prop.type) {
-            case 'boolean':
-                options[key] = 
-                    (args[key] || prop.default) === 'true'
-                    || (args[key] || prop.default) === true;
-                break;
-            case 'number':
-                options[key] = parseInt(args[key] || prop.default);
-                break;
-            case 'array':
-                const value = (args[key] || prop.default);
-                if (Array.isArray(value)) {
-                    options[key] = value;
-                } else {
-                    options[key] = [
-                        ...('' + value)
-                            .replace(/[\[\]\'\"]*/g, '')
-                            .split(',')
-                    ];
-                }
-                break;
-            case 'object':
-                options[key] = (args[key] || {});
-            default:
-                options[key] = String(args[key] || prop.default);
+        if (prop) {
+            options[`ang:${key}`] = checkType( key, 
+                args[key] || options[key] || prop.default,
+                prop.type
+            );
+        } else if (!/^[\_\$]/.test(key)) {
+            options[key] = checkType( key, (args[key] || options[key]), typeof options[key]);
         }
     }
 
-    return { ...options, ...args };
+    // Check custom options.
+    // for (const key in baseOptions) {
+    //     options[key] = checkType( key, args[key], typeof baseOptions[key]);
+    // }
+
+    return cleanOptions(options);
 };
 
 module.exports = {
     schema,
-    validate,
+    esbuildOptions,
+    normalizeArguments,
 };

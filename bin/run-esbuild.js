@@ -1,51 +1,38 @@
-/**
- * Goal: works correctly with loadChildren().
- */
 const path = require('path');
 const fs = require('fs');
 
 const chokidar = require('chokidar');
 const { build } = require('esbuild');
 const sass = require('sass');
-const yargs = require('yargs/yargs')
-const { hideBin } = require('yargs/helpers')
-const argv = yargs(hideBin(process.argv)).argv;
 
 const minimalLiveServer = require('./lib/minimal-server');
 const { log, convertMessage } = require('./lib/log');
 const FileStore = require('./lib/file-store');
 const esBuilder = require('./lib/builder');
-const { schema, validate } = require('./lib/options-parser');
 
-const zoneJsPlugin = require('./plugin/esbuild-plugin-zonejs');
+const { schema, esbuildOptions, normalizeArguments } = require(
+  './lib/options-parser'
+);
+const zoneJsPlugin = require(
+  './plugin/esbuild-plugin-zonejs'
+);
 const indexFileProcessor = require('./plugin/esbuild-index-file-processor');
-const angularComponentDecoratorPlugin = require('./plugin/esbuild-component-decorator');
+const angularComponentDecoratorPlugin = require(
+  './plugin/esbuild-component-decorator'
+);
 const assetsResolver = require('./plugin/esbuild-assets-resolver');
-const settingsResolver = require('./plugin/esbuild-settings-resolver');
 const cssResolver = require('./plugin/esbuild-css-resolver');
 const jsResolver = require('./plugin/esbuild-js-resolver');
 
-const esbuildOptions = {
-  bundle: true,
-  main: ['src/main.ts'],
-  outpath: 'dist/esbuild',
-  minify: false,
-  sourcemap: false,
-  port: 4200,
-  open: false,
-  serve: true,
-  watch: true,
-  format: 'esm',
-  tsconfig: null,
-  project: '',
-  mode: 'build',
-};
-
 module.exports = class NgEsbuild {
-  constructor(options = esbuildOptions) {
+  constructor(options = {}) {
+    this.times = [new Date().getTime(), new Date().getTime()];
 
-    this.options = validate({ ...esbuildOptions, ...options });
-    log(this.options);
+    this.options = normalizeArguments({ ...esbuildOptions, ...(options || {}) });
+    log('FINAL: ', this.options);
+
+    this.times[1] = new Date().getTime();
+    log(`EsBuild complete in ${this.times[1] - this.times[0]}ms`);
     process.exit();
     this.options.open = Boolean(this.options.open);
 
@@ -82,7 +69,6 @@ module.exports = class NgEsbuild {
 
     this.builderOptions = null;
 
-    this.times = [new Date().getTime(), new Date().getTime()];
 
     this.liveServerIsRunning = false;
     this.buildInProgress = false;
@@ -97,6 +83,8 @@ module.exports = class NgEsbuild {
       this.resolver = resolve;
       this.rejector = reject;
     });
+
+    this.getBuilderOptions();
 
     this.initOutputDirectory();
 
@@ -114,10 +102,10 @@ module.exports = class NgEsbuild {
         path.join(this.workDir, 'angular.json'),
         'json'
       );
-      
+
       const project = this.options.project
-      || Object.keys(angularSettings.projects)[0];
-      
+        || Object.keys(angularSettings.projects)[0];
+
       const mode = this.options.mode;
       this.builderOptions = angularSettings.projects[project].architect[mode].options;
     }
@@ -126,7 +114,7 @@ module.exports = class NgEsbuild {
   }
 
   async initOutputDirectory() {
-    await fs.promises.rm(this.outDir, {recursive: true, force: true});
+    await fs.promises.rm(this.outDir, { recursive: true, force: true });
   }
 
   initWatcher() {
@@ -166,7 +154,6 @@ module.exports = class NgEsbuild {
         '.css': 'text',
       },
       plugins: [
-        // settingsResolver(this),
         assetsResolver(this),
         indexFileProcessor(this),
         zoneJsPlugin(this),
