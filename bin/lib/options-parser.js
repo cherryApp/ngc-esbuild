@@ -1,4 +1,5 @@
-const argv = require('yargs/yargs')
+const yargs = require('yargs');
+const { hideBin } = require('yargs/helpers');
 
 const schema = {
     "$schema": "http://json-schema.org/draft-07/schema",
@@ -518,7 +519,7 @@ const schema = {
 const esbuildOptions = {
     entryPoints: ['src/main.ts'], // main
     bundle: true, // true|false
-    outfile: 'dist/main.js', // string
+    outfile: '', // string
     outdir: 'dist/esbuild', // outpath
     external: [], // eg: ['fsevents']
     format: 'esm', // iife, cjs, or esm
@@ -580,13 +581,14 @@ const customOptions = {
 };
 
 const cleanOptions = (options = {}) => {
+    const output = {};
     for (const k in options) {
-        if (typeof options[k] === 'undefined' || options[k] === 'undefined') {
-            delete options[k];
+        if (options[k]) {
+            output[k] = options[k];
         }
     }
 
-    return options;
+    return output;
 }
 
 const arrayUnique = (value, index, self) => {
@@ -610,35 +612,37 @@ const checkType = (key, value, type) => {
     }
 }
 
-const normalizeArguments = (options = esbuildOptions) => {
-    const baseOptions = { ...esbuildOptions, ...customOptions };
-    options = { ...baseOptions, ...options };
-    if (require.main === module) {
-        return cleanOptions(options);
-    }
+const normalizeArguments = (options = {}) => {
+    options = { ...esbuildOptions, ...customOptions, ...options };
 
     // Parsing arguments.
-    const args = argv(process.argv.slice(2)).argv;
-    console.log('ARGS: ', args)
-    const keys = Object.keys({ ...options, ...schema.properties, ...args });
-    for (const key of keys) {
-        const prop = schema.properties[key];
-        if (prop) {
-            options[`ang:${key}`] = checkType( key, 
-                args[key] || options[key] || prop.default,
-                prop.type
-            );
-        } else if (!/^[\_\$]/.test(key)) {
-            options[key] = checkType( key, (args[key] || options[key]), typeof options[key]);
+    const args = yargs(hideBin(process.argv)).argv;
+    const argsKeys = Object.keys(args).filter( k => !/^[\_\$]/.test(k) );
+    if (argsKeys.length) {
+        const keys = [...Object.keys({ ...schema.properties }), ...argsKeys];
+        for (const key of keys) {
+            const prop = schema.properties[key];
+            if (prop) {
+                options[key] = checkType( key, 
+                    args[key] || prop.default,
+                    prop.type
+                );
+            } else if (!/^[\_\$]/.test(key)) {
+                options[key] = checkType( key, args[key], typeof options[key]);
+            }
         }
     }
 
-    // Check custom options.
-    // for (const key in baseOptions) {
-    //     options[key] = checkType( key, args[key], typeof baseOptions[key]);
-    // }
+    options = cleanOptions(options);
 
-    return cleanOptions(options);
+    const buildOptions = {};
+    Object.keys(esbuildOptions).forEach(k => {
+        if (options[k]) {
+            buildOptions[k] = options[k]
+        }
+    });
+
+    return { options, buildOptions };
 };
 
 module.exports = {

@@ -28,17 +28,12 @@ module.exports = class NgEsbuild {
   constructor(options = {}) {
     this.times = [new Date().getTime(), new Date().getTime()];
 
-    this.options = normalizeArguments({ ...esbuildOptions, ...(options || {}) });
-    log('FINAL: ', this.options);
-
-    this.times[1] = new Date().getTime();
-    log(`EsBuild complete in ${this.times[1] - this.times[0]}ms`);
-    process.exit();
-    this.options.open = Boolean(this.options.open);
-
-    this.entryPoints = Array.isArray(this.options.main)
-      ? this.options.main
-      : [this.options.main];
+    const allOptions = normalizeArguments({ 
+      ...esbuildOptions, 
+      ...(options || {}) 
+    });
+    this.options = allOptions.options;
+    this.buildOptions = allOptions.buildOptions;
 
     for (const key of Object.keys(this.options)) {
       if (this.options[key] === null) {
@@ -56,7 +51,7 @@ module.exports = class NgEsbuild {
 
     this.sass = require('sass');
 
-    this.outPath = this.options.outpath;
+    this.outPath = this.options['ang:outputPath'] || this.options.outdir;
 
     this.workDir = process.cwd();
 
@@ -106,7 +101,7 @@ module.exports = class NgEsbuild {
       const project = this.options.project
         || Object.keys(angularSettings.projects)[0];
 
-      const mode = this.options.mode;
+      const mode = this.options.mode || 'build';
       this.builderOptions = angularSettings.projects[project].architect[mode].options;
     }
 
@@ -136,34 +131,16 @@ module.exports = class NgEsbuild {
    */
   builder() {
     this.buildInProgress = true;
-    esBuilder({
-      entryPoints: this.entryPoints,
-      bundle: this.options.bundle,
-      // outfile: path.join(this.outDir, 'main.js'),
-
-      outdir: this.outDir,
-      splitting: this.options.format === 'esm',
-      format: this.options.format,
-      minify: this.options.minify,
-      sourcemap: this.options.sourcemap,
-
-      write: !this.inMemory,
-      treeShaking: true,
-      loader: {
-        '.html': 'text',
-        '.css': 'text',
-      },
-      plugins: [
-        assetsResolver(this),
-        indexFileProcessor(this),
-        zoneJsPlugin(this),
-        angularComponentDecoratorPlugin(this),
-        cssResolver(this),
-        jsResolver(this),
-      ],
-      preserveSymlinks: true,
-      tsconfig: this.options.tsconfig,
-    }).then(result => {
+    this.buildOptions.plugins = [
+      assetsResolver(this),
+      indexFileProcessor(this),
+      zoneJsPlugin(this),
+      angularComponentDecoratorPlugin(this),
+      cssResolver(this),
+      jsResolver(this),
+    ];
+    
+    esBuilder(this.buildOptions).then(result => {
       if (result.outputFiles) {
         result.outputFiles.forEach(file => {
           const key = path.join(this.outDir, path.basename(file.path));
