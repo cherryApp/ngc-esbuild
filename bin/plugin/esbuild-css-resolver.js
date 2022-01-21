@@ -85,7 +85,7 @@ const cssResolver = (instance) => {
 
         let cache = '';
 
-        const options = await instance.getBuilderOptions();
+        const options = await instance.getAngularOptions();
 
         const works = [];
         (options.styles || []).forEach((item = '') => {

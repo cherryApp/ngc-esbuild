@@ -14,7 +14,7 @@ const jsResolver = (instance) => {
 
         let cache = '';
 
-        const options = await instance.getBuilderOptions();
+        const options = await instance.getAngularOptions();
         options.scripts.forEach((item = '') => {
           const itemPath = item.includes('/')
             ? path.join(instance.workDir, item)

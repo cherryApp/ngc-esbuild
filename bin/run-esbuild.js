@@ -62,7 +62,7 @@ module.exports = class NgEsbuild {
 
     this.componentBuffer = {};
 
-    this.builderOptions = null;
+    this.angularOptions = null;
 
 
     this.liveServerIsRunning = false;
@@ -79,7 +79,7 @@ module.exports = class NgEsbuild {
       this.rejector = reject;
     });
 
-    this.getBuilderOptions();
+    this.getAngularOptions();
 
     this.initOutputDirectory();
 
@@ -91,8 +91,8 @@ module.exports = class NgEsbuild {
 
   }
 
-  async getBuilderOptions() {
-    if (!this.builderOptions) {
+  async getAngularOptions() {
+    if (!this.angularOptions) {
       const angularSettings = await this.store.getCachedFile(
         path.join(this.workDir, 'angular.json'),
         'json'
@@ -102,10 +102,19 @@ module.exports = class NgEsbuild {
         || Object.keys(angularSettings.projects)[0];
 
       const mode = this.options.mode || 'build';
-      this.builderOptions = angularSettings.projects[project].architect[mode].options;
+      this.angularOptions = angularSettings.projects[project].architect[mode].options;
+      console.log('BUILDEROPTIONS: ', this.angularOptions);
+
+      this.buildOptions.entryPoints = this.angularOptions.main
+        ? [this.angularOptions.main]
+        : this.buildOptions.entryPoints;
+      this.buildOptions.tsconfig = this.angularOptions.tsConfig 
+        || this.buildOptions.tsconfig;   
+      this.buildOptions.outdir = this.angularOptions.outputPath
+        || this.buildOptions.outdir;
     }
 
-    return this.builderOptions;
+    return this.angularOptions;
   }
 
   async initOutputDirectory() {
@@ -129,8 +138,9 @@ module.exports = class NgEsbuild {
   /**
    * Wrapper method to use esbuild.
    */
-  builder() {
+  async builder() {
     this.buildInProgress = true;
+    await this.getAngularOptions();
     this.buildOptions.plugins = [
       assetsResolver(this),
       indexFileProcessor(this),
@@ -139,7 +149,8 @@ module.exports = class NgEsbuild {
       cssResolver(this),
       jsResolver(this),
     ];
-    
+    this.buildOptions.minify = false;
+
     esBuilder(this.buildOptions).then(result => {
       if (result.outputFiles) {
         result.outputFiles.forEach(file => {

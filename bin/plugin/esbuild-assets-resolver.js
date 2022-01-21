@@ -8,7 +8,7 @@ const assetsResolver = (instance) => {
         return;
       }
 
-      const options = await instance.getBuilderOptions();
+      const options = await instance.getAngularOptions();
 
       instance.store.copyFromList(
         options.assets.map( asset => path.join(instance.workDir, asset) ),

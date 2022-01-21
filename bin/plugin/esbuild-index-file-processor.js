@@ -17,11 +17,11 @@ const indexFileProcessor = (instance) => {
           return;
         }
 
-        let path = require('path');
-        let fs = require('fs');
+        const options = await instance.getAngularOptions();
+        const indexFilePath = options.index || 'src/index.html';
 
         let indexFileContent = await fs.promises.readFile(
-          path.join(instance.workDir, 'src/index.html'),
+          path.join(instance.workDir, indexFilePath),
           'utf8',
         );
 
