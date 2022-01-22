@@ -15,15 +15,20 @@ const jsResolver = (instance) => {
         let cache = '';
 
         const options = await instance.getAngularOptions();
+        const works = [];
         options.scripts.forEach((item = '') => {
           const itemPath = item.includes('/')
             ? path.join(instance.workDir, item)
             : path.join(instance.workDir, 'src', item);
-          const content = fs.readFileSync(itemPath, 'utf8');
-          cache += `\n\n${content}`;
+          works.push(fs.promises.readFile(itemPath, 'utf8'));
         });
 
-        const jsOutputPath = path.join(instance.outDir, `vendor.js`);
+        await Promise.all(works).then( files => {
+          cache = files.join(`\n\n`);
+          return true;
+        });
+
+        const jsOutputPath = path.join(options.outputPath, `vendor.js`);
         await instance.store.fileWriter(jsOutputPath, cache, 'utf8');
       });
     }

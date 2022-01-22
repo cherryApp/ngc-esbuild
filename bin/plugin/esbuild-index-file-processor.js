@@ -39,7 +39,7 @@ const indexFileProcessor = (instance) => {
         );
 
         await instance.store.fileWriter(
-          path.join(instance.outDir, 'index.html'),
+          path.join(options.outputPath, 'index.html'),
           indexFileContent
         );
       });

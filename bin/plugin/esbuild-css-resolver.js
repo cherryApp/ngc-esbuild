@@ -96,7 +96,7 @@ const cssResolver = (instance) => {
         });
 
         await Promise.all(works);
-        const cssOutputPath = path.join(instance.outDir, `main.css`);
+        const cssOutputPath = path.join(options.outputPath, `main.css`);
         await instance.store.fileWriter(cssOutputPath, instance.cssCache, 'utf8');
       });
     }

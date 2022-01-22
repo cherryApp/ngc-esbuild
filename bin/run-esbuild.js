@@ -103,7 +103,7 @@ module.exports = class NgEsbuild {
 
       const mode = this.options.mode || 'build';
       this.angularOptions = angularSettings.projects[project].architect[mode].options;
-      console.log('BUILDEROPTIONS: ', this.angularOptions);
+      console.log('ANGULAROPTIONS: ', this.angularOptions);
 
       this.buildOptions.entryPoints = this.angularOptions.main
         ? [this.angularOptions.main]
@@ -140,7 +140,7 @@ module.exports = class NgEsbuild {
    */
   async builder() {
     this.buildInProgress = true;
-    await this.getAngularOptions();
+    const angularOptions = await this.getAngularOptions();
     this.buildOptions.plugins = [
       assetsResolver(this),
       indexFileProcessor(this),
@@ -150,6 +150,7 @@ module.exports = class NgEsbuild {
       jsResolver(this),
     ];
     this.buildOptions.minify = false;
+
 
     esBuilder(this.buildOptions).then(result => {
       if (result.outputFiles) {
@@ -161,7 +162,7 @@ module.exports = class NgEsbuild {
 
       if (!this.liveServerIsRunning && this.options.serve) {
         this.minimalServer = minimalLiveServer({
-          root: `${this.outPath}/`,
+          root: `${angularOptions.outputPath}/`,
           fileBuffer: this.inMemory ? this.inMemoryStore : null,
           port: this.options.port ? Number(this.options.port) : 4200,
           open: this.options.open,

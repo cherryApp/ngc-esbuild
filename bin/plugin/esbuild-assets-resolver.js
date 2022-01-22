@@ -12,7 +12,7 @@ const assetsResolver = (instance) => {
 
       instance.store.copyFromList(
         options.assets.map( asset => path.join(instance.workDir, asset) ),
-        path.join(instance.outDir, 'assets'),
+        path.join(options.outputPath, 'assets'),
       );
 
 
