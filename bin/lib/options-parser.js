@@ -532,7 +532,7 @@ const esbuildOptions = {
     platform: 'browser', // node|browser|neutral
     sourcemap: true, // true|false|'external'|'inline'|'both'
     splitting: true, // true|false
-    target: ['chrome58'], // ['es2020', 'chrome58', 'firefox57',  'safari11',  'edge16',  'node12',],
+    target: ['es2020'], // ['es2020', 'chrome58', 'firefox57',  'safari11',  'edge16',  'node12',],
     watch: true, // true|false|object
     write: true, // true|false
     allowOverwrite: true, // true|false

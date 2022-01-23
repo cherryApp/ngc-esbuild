@@ -103,7 +103,7 @@ module.exports = class NgEsbuild {
 
       const mode = this.options.mode || 'build';
       this.angularOptions = angularSettings.projects[project].architect[mode].options;
-      console.log('ANGULAROPTIONS: ', this.angularOptions);
+      // console.log('ANGULAROPTIONS: ', this.angularOptions);
 
       this.buildOptions.entryPoints = this.angularOptions.main
         ? [this.angularOptions.main]
@@ -149,7 +149,6 @@ module.exports = class NgEsbuild {
       cssResolver(this),
       jsResolver(this),
     ];
-    this.buildOptions.minify = false;
 
 
     esBuilder(this.buildOptions).then(result => {
