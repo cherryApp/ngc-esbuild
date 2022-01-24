@@ -24,7 +24,7 @@ const urlUnpacker = (instance, workDir = '', content = '',) => {
 
   const matches = content.matchAll(/url\(['"]?([^\)'"\?]*)[\"\?\)]?/gm);
   for (let match of matches) {
-    if (!/data\:/.test(match[0])) {
+    if (!/data\:/.test(match[0]) && !/^(?!\.)\/assets/.test(match[1])) {
       try {
         const sourcePath = path.join(workDir, match[1]);
         const fileName = path.basename(sourcePath);
