@@ -96,17 +96,38 @@ new NgcEsbuild({
 ```
 
 ## Arguments:
-
-| name        | values       |                                                |
-| ----------- | ------------ | ---------------------------------------------- |
-| `main`      | `<string>`   | the path of the main file (def: src/main.ts    |
-| `outpath`   | `<string>`   | the path of the output dir. (def: dist/esbuild |
-| `minify`    | `true/false` | minify the output                              |
-| `sourcemap` | `true/false` | generate sourcemaps                            |
-| `port`      | `<number>`   | the port of the live-server                    |
-| `serve`     | `true/false` | live-server will be run (def: true)            |
-| `open`      | `true/false` | open in the browser (def: false)               |
-| `watch`     | `true/false` | watching files (def: true)                     |
+- These arguments are supported both from cmd and the nodejs call:
+```json
+{
+    // specific options for this package:
+    port: 4200, // live-server port
+    open: false, // open in default browser
+    serve: true, // start the live-server
+    project: '', // project name from the angular.json file
+    
+    // esbuild options:
+    entryPoints: ['src/main.ts'], // main
+    bundle: true, // true|false
+    outfile: '', // string
+    outdir: 'dist/esbuild', // outpath
+    external: [], // eg: ['fsevents']
+    format: 'esm', // iife, cjs, or esm
+    inject: [], // eg: ['./process-shim.js']
+    minify: true, // true|false
+    platform: 'browser', // node|browser|neutral
+    sourcemap: true, // true|false|'external'|'inline'|'both'
+    splitting: true, // true|false
+    target: ['es2020'], // ['es2020', 'chrome58', 'firefox57',  'safari11',  'edge16',  'node12',],
+    watch: true, // true|false|object
+    write: true, // true|false
+    allowOverwrite: true, // true|false
+    metafile: false, // true|false - for the analyze feature
+    treeShaking: true, // true|false
+    tsconfig: 'tsconfig.json', // string
+    tsconfigRaw: '',
+    absWorkingDir: process.cwd(), // string: a file-system path
+}
+```
 
 ## Documentation 📄
 
@@ -131,6 +152,7 @@ These plugins process .ts files, handle dependency injectors, unpack styles, etc
 | `assets`               | `Yes`     | copy to the output folder                        |
 | `scss :root`           | `No`      | angular pseudo-selectors are not supported yet   |
 | `less`                 | `No`      | less stylesheets are not supported yet           |
+| `style encapsulation`  | `No`      | work in progress                                 |
 
 ## Contributing 🍰
 
