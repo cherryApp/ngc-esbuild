@@ -99,7 +99,7 @@ new NgcEsbuild({
 - These arguments are supported both from cmd and the nodejs call:
 ```javascript
 {
-    // specific options for this package:
+    // special options for this package:
     port: 4200, // live-server port
     open: false, // open in default browser
     serve: true, // start the live-server
