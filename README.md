@@ -97,7 +97,7 @@ new NgcEsbuild({
 
 ## Arguments:
 - These arguments are supported both from cmd and the nodejs call:
-```json
+```javascript
 {
     // specific options for this package:
     port: 4200, // live-server port
