@@ -150,7 +150,6 @@ module.exports = class NgEsbuild {
       jsResolver(this),
     ];
 
-
     esBuilder(this.buildOptions).then(result => {
       if (result.outputFiles) {
         result.outputFiles.forEach(file => {

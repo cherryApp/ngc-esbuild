@@ -1,3 +1,4 @@
+const { option } = require('yargs');
 const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
 
@@ -583,7 +584,9 @@ const customOptions = {
 const cleanOptions = (options = {}) => {
     const output = {};
     for (const k in options) {
-        if (options[k]) {
+        if (
+            typeof options[k] !== 'undefined' 
+            && options[k] !== '') {
             output[k] = options[k];
         }
     }
@@ -636,9 +639,13 @@ const normalizeArguments = (options = {}) => {
     options = cleanOptions(options);
 
     const buildOptions = {};
-    Object.keys(esbuildOptions).forEach(k => {
-        if (options[k]) {
-            buildOptions[k] = options[k]
+    const buildKeys = Object.keys(esbuildOptions);
+    Object.keys(options).forEach(k => {
+        if (
+            typeof options[k] !== undefined
+            && buildKeys.includes(k)
+        ) {
+            buildOptions[k] = options[k];
         }
     });
 
