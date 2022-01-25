@@ -94,16 +94,16 @@ module.exports = class FileStore {
     return Promise.resolve(this.fileCache[srcPath]);
   }
 
-  async copyFromList(list = [], dest = '') {
+  async copyFromList(list = [], dest = '', filter = /.*/) {
     const processes = [];
     for (const file of list) {
-      if (/^.*\.[a-zA-Z]{1,5}$/.test(file)) {
+      if (/^.*\.[a-zA-Z]{1,5}$/.test(file) && filter.test(file)) {
         processes.push(this.copyFile(
           file,
           dest,
         ));
       } else {
-        processes.push(this.copyDir(file, dest));
+        processes.push(this.copyDir(file, dest, filter));
       }
     }
 
@@ -117,7 +117,7 @@ module.exports = class FileStore {
      * @param {String} src path of the source directory
      * @param {String} dest path of the target directory
      */
-   async copyDir(src, dest) {
+   async copyDir(src = '', dest = '', filter = /.*/) {
     if (!this.inMemory) {
       await fs.promises.mkdir(dest, { recursive: true });
     }
@@ -130,9 +130,11 @@ module.exports = class FileStore {
       let srcPath = path.join(src, entry.name);
       let destPath = path.join(dest, entry.name);
 
-      entry.isDirectory() ?
-        processes.push(this.copyDir(srcPath, destPath)) :
+      if (entry.isDirectory() && filter.test(srcPath)) {
+        processes.push(this.copyDir(srcPath, destPath, filter));
+      } else if (filter.test(srcPath)) {
         processes.push(this.copyFile(srcPath, destPath));
+      }
     }
 
     await Promise.all(processes);
