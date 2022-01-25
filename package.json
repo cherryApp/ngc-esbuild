@@ -31,6 +31,8 @@
   "dependencies": {
     "chokidar": "^3.5.2",
     "esbuild": "^0.14.11",
+    "glob": "^7.2.0",
+    "glob-to-regexp": "^0.4.1",
     "sass": "^1.47.0",
     "ws": "^8.4.0",
     "yargs": "^17.3.1"
