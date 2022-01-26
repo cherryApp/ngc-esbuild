@@ -4,6 +4,8 @@ const sass = require('sass');
 const JestWorker = require('jest-worker').Worker;
 const scssWorker = new JestWorker(require.resolve('../lib/scss-worker'));
 
+const publicWorker = require('../lib/scss-worker');
+
 const { log, convertMessage } = require('../lib/log');
 
 const globalCSSCache = [];
@@ -21,7 +23,7 @@ const cssResolver = (instance) => {
 
       build.onLoad({ filter: /.*/, namespace: 'sass' }, async args => {
         // scssProcessor(instance, args.path);
-        const css = await scssWorker.scssProcessor(JSON.stringify({
+        const css = await publicWorker.scssProcessor(JSON.stringify({
           scssPath: args.path, 
           projectDir: instance.workDir, 
           outDir: path.join(instance.workDir, options.outputPath)
@@ -43,7 +45,7 @@ const cssResolver = (instance) => {
           const itemPath = item.includes('/')
             ? path.join(instance.workDir, item)
             : path.join(instance.workDir, 'src', item);
-          works.push(scssWorker.scssProcessor(JSON.stringify({
+          works.push(publicWorker.scssProcessor(JSON.stringify({
             scssPath: itemPath, 
             projectDir: instance.workDir, 
             outDir: path.join(instance.workDir, options.outputPath)
@@ -56,7 +58,7 @@ const cssResolver = (instance) => {
           cssOutputPath, 
           [...globalCSSCache, ...results].join('')
         );
-        await scssWorker.end();
+        // await scssWorker.end();
       });
     }
   }

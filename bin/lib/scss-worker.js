@@ -79,8 +79,8 @@ const scssProcessor = (options = '') => {
         const css = typeof result.css !== 'undefined'
             ? result.css.toString()
             : result;
-        // const content = urlUnpacker(outDir, workDir, css);
-        const content = css;
+        const content = urlUnpacker(outDir, workDir, css);
+        // const content = css;
         return !content ? '' : `\n\n/* file: ${scssPath} */\n${content}`;
     });
 };
