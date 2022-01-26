@@ -28,9 +28,9 @@ module.exports = class NgEsbuild {
   constructor(options = {}) {
     this.times = [new Date().getTime(), new Date().getTime()];
 
-    const allOptions = normalizeArguments({ 
-      ...esbuildOptions, 
-      ...(options || {}) 
+    const allOptions = normalizeArguments({
+      ...esbuildOptions,
+      ...(options || {})
     });
     this.options = allOptions.options;
     this.buildOptions = allOptions.buildOptions;
@@ -40,6 +40,8 @@ module.exports = class NgEsbuild {
         delete this.options[key];
       }
     }
+
+    this.isWatching = false;
 
     this.inMemory = false;
 
@@ -51,7 +53,7 @@ module.exports = class NgEsbuild {
 
     this.sass = require('sass');
 
-    this.outPath = this.options['ang:outputPath'] || this.options.outdir;
+    this.outPath = this.options.outputPath || this.options.outdir || 'dist/esbuild';
 
     this.workDir = process.cwd();
 
@@ -83,7 +85,7 @@ module.exports = class NgEsbuild {
 
     this.initOutputDirectory();
 
-    if (this.options.watch) {
+    if (this.options.watch || this.options.open || this.options.serve) {
       this.initWatcher();
     } else {
       this.startBuild();
@@ -108,8 +110,8 @@ module.exports = class NgEsbuild {
       this.buildOptions.entryPoints = this.angularOptions.main
         ? [this.angularOptions.main]
         : this.buildOptions.entryPoints;
-      this.buildOptions.tsconfig = this.angularOptions.tsConfig 
-        || this.buildOptions.tsconfig;   
+      this.buildOptions.tsconfig = this.angularOptions.tsConfig
+        || this.buildOptions.tsconfig;
       this.buildOptions.outdir = this.angularOptions.outputPath
         || this.buildOptions.outdir;
     }
@@ -118,21 +120,23 @@ module.exports = class NgEsbuild {
   }
 
   async initOutputDirectory() {
-    await fs.promises.rm(this.outDir, { recursive: true, force: true });
+    return fs.promises.rm(this.outDir, { recursive: true, force: true });
   }
 
   initWatcher() {
     const watcher = chokidar.watch([
-      'src/**/*.(css|scss|less|sass|js|ts|tsx|html)',
+      'src/app/**/*.(css|scss|js|ts|html)',
       'angular.json'
     ], {
       ignored: /(^|[\/\\])\../, // ignore dotfiles
-      persistent: true
+      persistent: true,
     });
     watcher
+      .on('error', err => console.error(err))
       .on('add', filePath => this.startBuild(filePath))
       .on('change', filePath => this.startBuild(filePath))
-      .on('unlink', filePath => this.startBuild());
+      .on('unlink', filePath => this.startBuild(filePath))
+      .on('ready', () => this.startBuild('', true));
   }
 
   /**
@@ -187,8 +191,14 @@ module.exports = class NgEsbuild {
   }
 
 
-  startBuild(filePath = '') {
+  startBuild(filePath = '', ready = false) {
+    this.isWatching = ready ? ready : this.isWatching;
+    if (!this.isWatching) {
+      return;
+    }
+    
     if (filePath) {
+      console.log(`changed: ${filePath}`);
       this.lastUpdatedFileList.push(
         path.join(process.cwd(), filePath)
       );
@@ -199,7 +209,7 @@ module.exports = class NgEsbuild {
     }
 
     // Refresh everything.
-    this.dryRun = true;
+    // this.dryRun = true;
 
     clearTimeout(this.buildTimeout);
 
