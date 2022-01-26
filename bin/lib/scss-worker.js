@@ -82,7 +82,9 @@ const scssProcessor = (options = '') => {
         const content = urlUnpacker(outDir, workDir, css);
         // const content = css;
         return !content ? '' : `\n\n/* file: ${scssPath} */\n${content}`;
-    });
+    }).catch( err => {
+        return `\n\n/* file: ${scssPath} */\n/* ${ JSON.stringify(err) } */`;
+    })
 };
 
 const getCache = () => {
