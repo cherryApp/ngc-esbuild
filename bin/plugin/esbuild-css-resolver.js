@@ -23,7 +23,7 @@ const cssResolver = (instance) => {
 
       build.onLoad({ filter: /.*/, namespace: 'sass' }, async args => {
         // scssProcessor(instance, args.path);
-        const css = await publicWorker.scssProcessor(JSON.stringify({
+        const css = await scssWorker.scssProcessor(JSON.stringify({
           scssPath: args.path, 
           projectDir: instance.workDir, 
           outDir: path.join(instance.workDir, options.outputPath)
@@ -45,7 +45,7 @@ const cssResolver = (instance) => {
           const itemPath = item.includes('/')
             ? path.join(instance.workDir, item)
             : path.join(instance.workDir, 'src', item);
-          works.push(publicWorker.scssProcessor(JSON.stringify({
+          works.push(scssWorker.scssProcessor(JSON.stringify({
             scssPath: itemPath, 
             projectDir: instance.workDir, 
             outDir: path.join(instance.workDir, options.outputPath)
@@ -58,7 +58,7 @@ const cssResolver = (instance) => {
           cssOutputPath, 
           [...globalCSSCache, ...results].join('')
         );
-        // await scssWorker.end();
+        await scssWorker.end();
       });
     }
   }
