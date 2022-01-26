@@ -11,18 +11,18 @@ const assetsResolver = (instance) => {
 
       const options = await instance.getAngularOptions();
 
-      if (Array.isArray(options.asset)) {
-        options.asset.forEach(assetOrObject => {
+      if (Array.isArray(options.assets)) {
+        options.assets.forEach(assetOrObject => {
           if (typeof assetOrObject === 'string') {
             instance.store.copyFromList(
-              path.join(instance.workDir, assetOrObject),
-              path.join(options.outputPath, 'assets'),
+              [path.join(instance.workDir, assetOrObject)],
+              path.join(instance.workDir, options.outputPath, 'assets'),
             );
           } else if (assetOrObject.input && assetOrObject.output) {
             instance.store.copyFromList(
-              path.join(instance.workDir, assetOrObject.input),
-              path.join(options.outputPath, assetOrObject.output),
-              assetOrObject.glob ? globToRegExp(assetOrObject.glob) : /.*/,
+              [path.join(instance.workDir, assetOrObject.input)],
+              path.join(instance.workDir, options.outputPath, assetOrObject.output),
+              assetOrObject.glob ? globToRegExp(assetOrObject.glob.replace(/\//g, path.sep)) : /.*/,
             );
           }
         });

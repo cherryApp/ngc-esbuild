@@ -100,7 +100,7 @@ module.exports = class FileStore {
       if (/^.*\.[a-zA-Z]{1,5}$/.test(file) && filter.test(file)) {
         processes.push(this.copyFile(
           file,
-          dest,
+          path.join(dest, path.basename(file)),
         ));
       } else {
         processes.push(this.copyDir(file, dest, filter));
@@ -129,7 +129,7 @@ module.exports = class FileStore {
     for (let entry of entries) {
       let srcPath = path.join(src, entry.name);
       let destPath = path.join(dest, entry.name);
-
+      
       if (entry.isDirectory() && filter.test(srcPath)) {
         processes.push(this.copyDir(srcPath, destPath, filter));
       } else if (filter.test(srcPath)) {

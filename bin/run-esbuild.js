@@ -51,7 +51,7 @@ module.exports = class NgEsbuild {
 
     this.sass = require('sass');
 
-    this.outPath = this.options['ang:outputPath'] || this.options.outdir;
+    this.outPath = this.options.outputPath || this.options.outdir || 'dist/esbuild';
 
     this.workDir = process.cwd();
 
