@@ -9,6 +9,25 @@ const scssWorker = new JestWorker(require.resolve('../lib/scss-worker'));
 
 const scssWorkerList = [];
 
+const externalModuleConfig = { input: '', inject: false, bundleName: '' };
+const resolveExternalModule = async (instance, options, item = externalModuleConfig) => {
+  const itemPath = !/^\//.test(item.input)
+    ? path.join(instance.workDir, item.input)
+    : path.join(instance.workDir, 'src', item.input);
+
+  const toCopy = await scssWorker.scssProcessor(JSON.stringify({
+    scssPath: itemPath,
+    projectDir: instance.workDir,
+    outDir: path.join(instance.workDir, options.outputPath)
+  }));
+  
+  const cssOutputPath = path.join(options.outputPath, `${item.bundleName}.css`);
+  await instance.store.fileWriter(
+    cssOutputPath,
+    toCopy
+  );
+};
+
 const cssResolver = (instance) => {
   return {
     name: 'angularCSSProcessor',
@@ -16,9 +35,12 @@ const cssResolver = (instance) => {
       const options = await instance.getAngularOptions();
 
       (options.styles || []).forEach((item = '') => {
-        const itemPath = item.includes('/')
-          ? path.join(instance.workDir, item)
-          : path.join(instance.workDir, 'src', item);
+        if (typeof item === 'object' && item.input && item.inject !== true) {
+          return resolveExternalModule(instance, options, item);
+        }
+        const itemPath = !/^\//.test(item.input || item)
+          ? path.join(instance.workDir, item.input || item)
+          : path.join(instance.workDir, 'src', item.input || item);
         scssWorkerList.push(scssWorker.scssProcessor(JSON.stringify({
           scssPath: itemPath,
           projectDir: instance.workDir,
