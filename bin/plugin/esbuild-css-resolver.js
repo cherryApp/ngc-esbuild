@@ -21,7 +21,9 @@ const resolveExternalModule = async (instance, options, item = externalModuleCon
     outDir: path.join(instance.workDir, options.outputPath)
   }));
   
-  const cssOutputPath = path.join(options.outputPath, `${item.bundleName}.css`);
+  const cssOutputPath = path.join(
+    options.outputPath, 
+    item.bundleName ? `${item.bundleName}.css` : path.basename(item.input) );
   await instance.store.fileWriter(
     cssOutputPath,
     toCopy
