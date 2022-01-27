@@ -126,7 +126,10 @@ module.exports = class NgEsbuild {
   initWatcher() {
     const watcher = chokidar.watch([
       'src/app/**/*.(css|scss|js|ts|html)',
-      'angular.json'
+      'angular.json',
+      'src/styles.scss',
+      'src/main.ts',
+      'src/index.html',
     ], {
       ignored: /(^|[\/\\])\../, // ignore dotfiles
       persistent: true,
