@@ -528,6 +528,7 @@ const esbuildOptions = {
     loader: {
         '.html': 'text',
         '.css': 'text',
+        '.svg': 'text',
     },
     minify: true, // true|false
     platform: 'browser', // node|browser|neutral

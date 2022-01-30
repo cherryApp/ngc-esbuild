@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { optimize } = require('svgo');
 
 const { log, convertMessage } = require('../lib/log');
 const esBuilder = require('../lib/builder');
@@ -77,6 +78,7 @@ const angularComponentDecoratorPlugin = (instance) => {
   return {
     name: 'angularComponentProcessor',
     async setup(build) {
+
       build.onLoad({ filter: /src.*\.(component|pipe|service|directive|guard|module)\.ts$/ }, async (args) => {
         // Check the cache.
         if (!instance.lastUpdatedFileList.includes(args.path) && instance.componentBuffer[args.path]) {
@@ -96,9 +98,9 @@ const angularComponentDecoratorPlugin = (instance) => {
             contents = `import '@angular/compiler';\n${contents}`;
           }
 
-          const templateUrl = getValueByPattern(/^ *templateUrl *\: *['"]*([^'"]*)/gm, source);
-
           if (/^ *templateUrl *\: *['"]*([^'"]*)/gm.test(contents)) {
+            const templateUrl = getValueByPattern(/^ *templateUrl *\: *['"]*([^'"]*)/gm, source)
+              // .replace(/\.svg$/, '.html');
             contents = `import templateSource from '${templateUrl}';
             ${contents}`;
           }
