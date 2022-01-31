@@ -3,6 +3,23 @@ const path = require('path');
 
 const { log, convertMessage } = require('../lib/log');
 
+const externalModuleConfig = { input: '', inject: false, bundleName: '' };
+const resolveExternalModule = async (instance, options, item = externalModuleConfig) => {
+  const itemPath = !/^\//.test(item.input)
+    ? path.join(instance.workDir, item.input)
+    : path.join(instance.workDir, 'src', item.input);
+
+  const toCopy = await fs.promises.readFile(itemPath, 'utf8');
+  
+  const jsOutputPath = path.join(
+    options.outputPath, 
+    item.bundleName ? `${item.bundleName}.js` : path.basename(item.input) );
+  await instance.store.fileWriter(
+    jsOutputPath,
+    toCopy
+  );
+};
+
 const jsResolver = (instance) => {
   return {
     name: 'angularVendorJSResolver',
@@ -12,14 +29,19 @@ const jsResolver = (instance) => {
           return;
         }
 
-        let cache = '';
+        let cache = '';        
 
         const options = await instance.getAngularOptions();
         const works = [];
-        options.scripts.forEach((item = '') => {
-          const itemPath = item.includes('/')
-            ? path.join(instance.workDir, item)
-            : path.join(instance.workDir, 'src', item);
+        (options.scripts || []).forEach((item = '') => {
+          if (typeof item === 'object' && item.input && item.inject !== true) {
+            return resolveExternalModule(instance, options, item);
+          }
+
+          const itemPath = !/^\//.test(item.input || item)
+            ? path.join(instance.workDir, item.input || item)
+            : path.join(instance.workDir, 'src', item.input || item);
+          
           works.push(fs.promises.readFile(itemPath, 'utf8'));
         });
 
