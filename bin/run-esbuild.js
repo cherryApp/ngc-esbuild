@@ -109,12 +109,12 @@ module.exports = class NgEsbuild {
       this.angularOptions = angularSettings.projects[project].architect[mode].options;
       // console.log('ANGULAROPTIONS: ', this.angularOptions);
 
-      this.buildOptions.entryPoints = this.angularOptions.main
-        ? [this.angularOptions.main]
-        : this.buildOptions.entryPoints;
+      this.buildOptions.entryPoints = this.buildOptions.entryPoints
+        || [this.angularOptions.main];
       this.buildOptions.tsconfig = this.angularOptions.tsConfig
         || this.buildOptions.tsconfig;
-      this.buildOptions.outdir = this.angularOptions.outputPath
+      this.buildOptions.outdir = this.options.outpath 
+        || this.angularOptions.outputPath 
         || this.buildOptions.outdir;
     }
 
