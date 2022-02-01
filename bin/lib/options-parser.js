@@ -650,6 +650,9 @@ const normalizeArguments = (options = {}) => {
         }
     });
 
+    // Patch for esm & splitting issue.
+    buildOptions.splitting = buildOptions.format === 'esm';
+
     return { options, buildOptions };
 };
 
