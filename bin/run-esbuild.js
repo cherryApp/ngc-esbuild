@@ -85,9 +85,11 @@ module.exports = class NgEsbuild {
 
     this.initOutputDirectory();
 
+    this.onlyBuild = false;
     if (this.options.watch || this.options.open || this.options.serve) {
       this.initWatcher();
     } else {
+      this.onlyBuild = true;
       this.startBuild();
     }
 
@@ -133,6 +135,7 @@ module.exports = class NgEsbuild {
     ], {
       ignored: /(^|[\/\\])\../, // ignore dotfiles
       persistent: true,
+      depth: 25,
     });
     watcher
       .on('error', err => console.error(err))
@@ -169,7 +172,9 @@ module.exports = class NgEsbuild {
         this.minimalServer = minimalLiveServer({
           root: `${angularOptions.outputPath}/`,
           fileBuffer: this.inMemory ? this.inMemoryStore : null,
-          port: this.options.port ? Number(this.options.port) : 4200,
+          port: this.options.port 
+            ? Number(this.options.port) 
+            : this.angularOptions.port || 4200,
           open: this.options.open,
         });
         this.liveServerIsRunning = true;
@@ -196,7 +201,7 @@ module.exports = class NgEsbuild {
 
   startBuild(filePath = '', ready = false) {
     this.isWatching = ready ? ready : this.isWatching;
-    if (!this.isWatching) {
+    if (!this.isWatching && !this.onlyBuild) {
       return;
     }
     

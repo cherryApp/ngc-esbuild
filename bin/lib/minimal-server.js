@@ -11,9 +11,8 @@ const { log, convertMessage } = require('./log');
 
 const serverOptions = {
   root: process.cwd(), // root of the file-server
-  fileBuffer: {}, // http port
-  port: 4200, // websocket port
-  socketPort: 8080, // a buffer to loading files from the memory
+  fileBuffer: {}, // a buffer to loading files from the memory
+  port: 4200, // http port
   open: false, // open in the default browser
 };
 
@@ -28,7 +27,8 @@ module.exports = (
 
   options = {...serverOptions, ...options};
 
-  const wss = new WebSocketServer({ port: options.socketPort });
+  const wssPort = Number(options.port) - 4200 + 8800;
+  const wss = new WebSocketServer({ port: wssPort });
   wss.on('connection', function connection(ws) {
     ws.on('message', function message(data) {
       log('received: %s', data);
@@ -46,7 +46,7 @@ module.exports = (
   };
 
   const clientScript = `<script>
-    const ws = new WebSocket('ws://127.0.0.1:8080');
+    const ws = new WebSocket('ws://127.0.0.1:${wssPort}');
     ws.onmessage = m => {
       if (m.data === 'location:refresh') {
         location.reload();
