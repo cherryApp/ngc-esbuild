@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 
-// Get packages.
 const NgEsbuild = require('./run-esbuild');
-new NgEsbuild();
+const OptionParser = require('./lib/options-parser');
+
+// Called from cmd.
+if (require.main === module) {
+  const parsedOptions = OptionParser.parseArgs();
+  new NgEsbuild(parsedOptions, 'cmd');
+} else {
+    // Called from a file.
+    module.exports = NgEsbuild;
+}

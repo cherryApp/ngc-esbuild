@@ -2,7 +2,7 @@
   "name": "ngc-esbuild",
   "version": "0.0.71",
   "description": "Angular Esbuild Compiler",
-  "main": "index.js",
+  "main": "./bin/index.js",
   "module": "./index.esm.js",
   "bin": {
     "ngc-esbuild": "./bin/index.js"

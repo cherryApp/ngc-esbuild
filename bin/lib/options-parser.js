@@ -587,6 +587,7 @@ const cleanOptions = (options = {}) => {
     for (const k in options) {
         if (
             typeof options[k] !== 'undefined' 
+            && options[k] !== 'undefined' 
             && options[k] !== '') {
             output[k] = options[k];
         }
@@ -611,14 +612,17 @@ const checkType = (key, value, type) => {
         case 'string':
             return String(value);
             break;
+        case 'array':
+            return Array.isArray(value) ? value : value.split(':');
+            break;
         default:
             return value;
     }
 }
 
-const normalizeArguments = (options = {}) => {
-    options = { ...esbuildOptions, ...customOptions, ...options };
-
+const parseArgs = () => {
+    let options = { ...esbuildOptions, ...customOptions };
+    
     // Parsing arguments.
     const args = yargs(hideBin(process.argv)).argv;
     const argsKeys = Object.keys(args).filter( k => !/^[\_\$]/.test(k) );
@@ -627,12 +631,17 @@ const normalizeArguments = (options = {}) => {
         for (const key of keys) {
             const prop = schema.properties[key];
             if (prop) {
-                options[key] = checkType( key, 
+                options[key] = checkType( 
+                    key, 
                     args[key] || prop.default,
                     prop.type
                 );
             } else if (!/^[\_\$]/.test(key)) {
-                options[key] = checkType( key, args[key], typeof options[key]);
+                options[key] = checkType( 
+                    key, 
+                    args[key], 
+                    Array.isArray(options[key]) ? 'array' : typeof options[key]
+                );
             }
         }
     }
@@ -656,8 +665,31 @@ const normalizeArguments = (options = {}) => {
     return { options, buildOptions };
 };
 
+const parseOptions = (options = {}) => {
+    options = { ...esbuildOptions, ...customOptions, ...options };
+
+    options = cleanOptions(options);
+
+    const buildOptions = {};
+    const buildKeys = Object.keys(esbuildOptions);
+    Object.keys(options).forEach(k => {
+        if (
+            typeof options[k] !== undefined
+            && buildKeys.includes(k)
+        ) {
+            buildOptions[k] = options[k];
+        }
+    });
+
+    // Patch for esm & splitting issue.
+    buildOptions.splitting = buildOptions.format === 'esm';
+
+    return { options, buildOptions };
+};
+
 module.exports = {
     schema,
     esbuildOptions,
-    normalizeArguments,
+    parseOptions,
+    parseArgs,
 };

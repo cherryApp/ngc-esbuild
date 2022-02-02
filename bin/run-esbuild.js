@@ -25,20 +25,16 @@ const cssResolver = require('./plugin/esbuild-css-resolver');
 const jsResolver = require('./plugin/esbuild-js-resolver');
 
 module.exports = class NgEsbuild {
-  constructor(options = {}) {
+  constructor(parsedOptions = {}, from = '') {
     this.times = [new Date().getTime(), new Date().getTime()];
 
-    const allOptions = normalizeArguments({
-      ...esbuildOptions,
-      ...(options || {})
-    });
-    this.options = allOptions.options;
-    this.buildOptions = allOptions.buildOptions;
-
-    for (const key of Object.keys(this.options)) {
-      if (this.options[key] === null) {
-        delete this.options[key];
-      }
+    if (from === 'cmd') {
+      this.options = parsedOptions.options;
+      this.buildOptions = parsedOptions.buildOptions;
+    } else {
+      parsedOptions = OptionParser.parseOptions(parsedOptions);
+      this.options = parsedOptions.options;
+      this.buildOptions = parsedOptions.buildOptions;
     }
 
     this.isWatching = false;
