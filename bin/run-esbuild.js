@@ -10,7 +10,7 @@ const { log, convertMessage } = require('./lib/log');
 const FileStore = require('./lib/file-store');
 const esBuilder = require('./lib/builder');
 
-const { schema, esbuildOptions, normalizeArguments } = require(
+const { schema, esbuildOptions, parseArgs, parseOptions } = require(
   './lib/options-parser'
 );
 const zoneJsPlugin = require(
@@ -32,7 +32,7 @@ module.exports = class NgEsbuild {
       this.options = parsedOptions.options;
       this.buildOptions = parsedOptions.buildOptions;
     } else {
-      parsedOptions = OptionParser.parseOptions(parsedOptions);
+      parsedOptions = parseOptions(parsedOptions);
       this.options = parsedOptions.options;
       this.buildOptions = parsedOptions.buildOptions;
     }
