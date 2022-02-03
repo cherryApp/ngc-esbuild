@@ -33,6 +33,8 @@
     "esbuild": "^0.14.11",
     "glob-to-regexp": "^0.4.1",
     "jest-worker": "^27.4.6",
+    "postcss": "^8.4.6",
+    "postcss-prefix-selector": "^1.14.0",
     "sass": "^1.47.0",
     "svgo": "^2.8.0",
     "ws": "^8.4.0",

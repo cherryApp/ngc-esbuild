@@ -96,6 +96,8 @@ const angularComponentDecoratorPlugin = (instance) => {
         try {
 
           let contents = source;
+          let componentName = '';
+          let componentID = '';
 
           // Import compiler.
           if (/module\.ts$/.test(args.path)) {
@@ -105,8 +107,9 @@ const angularComponentDecoratorPlugin = (instance) => {
           // Set component identifier.
           if (/\@Component/gm.test(contents)) {
             const m = contents.match(/selector *\: *[\'\"\`]([^\'\"\`]*)/);
-            instance.componentStore[m && m[1] ? m[1] : 'na'] = 
-              `${instance.HOST_ATTR}esb-c${componentBuffer.num}`;
+            componentName = m && m[1] ? m[1] : 'na';
+            componentID = `${instance.HOST_ATTR}esb-c${componentBuffer.num}`;
+            instance.componentStore[componentName] = componentID;
             componentBuffer.num++;
           }
 
@@ -122,7 +125,7 @@ const angularComponentDecoratorPlugin = (instance) => {
               /^ *styleUrls *\: *\[['"]([^'"\]]*)/gm,
               source
             );
-            contents = `import '${styleUrls}';\n${contents}`;
+            contents = `import '${componentID}#|#${styleUrls}';\n${contents}`;
           }
 
           contents = addInjects(contents);

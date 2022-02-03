@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const sass = require('sass');
+const postcss = require('postcss');
+const prefixer = require('postcss-prefix-selector');
 
 const cache = Object.create(null);
 let scssCache = '';
@@ -35,6 +37,14 @@ const importUrlResolvers = (workDir) => {
     }];
 };
 
+const prefixIt = (css = '', prefix = '') => {
+    // console.log('PREFIXIT: ', css, prefix);
+    return postcss().use(prefixer({
+        prefix,
+        // exclude: ['.c'],
+    })).process(css).css;
+};
+
 const urlUnpacker = (outDir = '', workDir = '', content = '',) => {
     if (!/url\(['"]?([^\)'"\?]*)[\"\?\)]?/gm.test(content)) {
         return content;
@@ -63,7 +73,7 @@ const urlUnpacker = (outDir = '', workDir = '', content = '',) => {
 };
 
 const scssProcessor = (options = '') => {
-    const { scssPath, projectDir, outDir } = JSON.parse(options);
+    const { scssPath, projectDir, outDir, wrapper } = JSON.parse(options);
     const workDir = path.dirname(scssPath);
 
     return (
@@ -75,16 +85,22 @@ const scssProcessor = (options = '') => {
                 ],
                 importers: importUrlResolvers(projectDir),
             })
-    ).then( result => {
+    ).then(result => {
         const css = typeof result.css !== 'undefined'
             ? result.css.toString()
             : result;
-        const content = urlUnpacker(outDir, workDir, css);
-        // const content = css;
-        return !content ? '' : `\n\n/* file: ${scssPath} */\n${content}`;
-    }).catch( err => {
-        return `\n\n/* file: ${scssPath} */\n/* ${ JSON.stringify(err) } */`;
-    })
+        if (!css || css === '') {
+            return '';
+        }
+
+        let content = urlUnpacker(outDir, workDir, css);
+        content = wrapper 
+            ? prefixIt(content, `[${wrapper}]`)
+            : content;
+        return `\n\n/* file: ${scssPath} */\n${content}`;
+    }).catch(err => {
+        return `\n\n/* file: ${scssPath} */\n/* ${JSON.stringify(err)} */`;
+    });
 };
 
 const getCache = () => {

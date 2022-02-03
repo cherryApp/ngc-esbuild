@@ -5,7 +5,7 @@ const JestWorker = require('jest-worker').Worker;
 const scssWorker = new JestWorker(require.resolve('../lib/scss-worker'));
 
 // Public interface of worker for testing purposes.
-// const publicWorker = require('../lib/scss-worker');
+const publicWorker = require('../lib/scss-worker');
 
 const scssWorkerList = [];
 
@@ -20,10 +20,10 @@ const resolveExternalModule = async (instance, options, item = externalModuleCon
     projectDir: instance.workDir,
     outDir: path.join(instance.workDir, options.outputPath)
   }));
-  
+
   const cssOutputPath = path.join(
-    options.outputPath, 
-    item.bundleName ? `${item.bundleName}.css` : path.basename(item.input) );
+    options.outputPath,
+    item.bundleName ? `${item.bundleName}.css` : path.basename(item.input));
   await instance.store.fileWriter(
     cssOutputPath,
     toCopy
@@ -50,16 +50,25 @@ const cssResolver = (instance) => {
         })));
       });
 
-      build.onResolve({ filter: /(\.scss|\.css)$/ }, args => ({
-        path: path.resolve(args.resolveDir, args.path),
-        namespace: 'sass'
-      }));
+      build.onResolve({ filter: /(\.scss|\.css)$/ }, args => {
+        const pathParts = args.path.split('#|#');
+        return {
+          path: path.resolve(
+            args.resolveDir,
+            pathParts[1] || pathParts[0]
+          ),
+          namespace: 'sass',
+          pluginData: pathParts.length === 2 ? pathParts[0] : ''
+        };
+      });
 
       build.onLoad({ filter: /.*/, namespace: 'sass' }, args => {
+        const wrapper = args.pluginData;
         scssWorkerList.push(scssWorker.scssProcessor(JSON.stringify({
           scssPath: args.path,
           projectDir: instance.workDir,
-          outDir: path.join(instance.workDir, options.outputPath)
+          outDir: path.join(instance.workDir, options.outputPath),
+          wrapper,
         })));
         return { contents: '', loader: 'text' };
       });
