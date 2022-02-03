@@ -37,6 +37,10 @@ module.exports = class NgEsbuild {
       this.buildOptions = parsedOptions.buildOptions;
     }
 
+    this.HOST_ATTR = `_nghost-`;
+    this.CONTENT_ATTR = `_ngcontent-`;
+    this.componentStore = {};
+
     this.isWatching = false;
 
     this.inMemory = false;

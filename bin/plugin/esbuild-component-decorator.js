@@ -5,6 +5,10 @@ const { optimize } = require('svgo');
 const { log, convertMessage } = require('../lib/log');
 const esBuilder = require('../lib/builder');
 
+const componentBuffer = {
+  num: 1,
+};
+
 /**
    * Check the file is an scss file.
    * @param {String} cssPath path of a file
@@ -98,9 +102,17 @@ const angularComponentDecoratorPlugin = (instance) => {
             contents = `import '@angular/compiler';\n${contents}`;
           }
 
+          // Set component identifier.
+          if (/\@Component/gm.test(contents)) {
+            const m = contents.match(/selector *\: *[\'\"\`]([^\'\"\`]*)/);
+            instance.componentStore[m && m[1] ? m[1] : 'na'] = 
+              `${instance.HOST_ATTR}esb-c${componentBuffer.num}`;
+            componentBuffer.num++;
+          }
+
           if (/^ *templateUrl *\: *['"]*([^'"]*)/gm.test(contents)) {
-            const templateUrl = getValueByPattern(/^ *templateUrl *\: *['"]*([^'"]*)/gm, source)
-              // .replace(/\.svg$/, '.html');
+            const templateUrl = 
+              getValueByPattern(/^ *templateUrl *\: *['"]*([^'"]*)/gm, source);
             contents = `import templateSource from '${templateUrl}';
             ${contents}`;
           }
