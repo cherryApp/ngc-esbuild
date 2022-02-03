@@ -16,6 +16,12 @@ function addNgcEsbuildComponentAttribute(name) {
   }
 }
 
+ngcEsbuildComponentNames.forEach( name => {
+  document.querySelectorAll(name).forEach( e => {
+    e.setAttribute(componentStore[name], '');
+  });
+});
+
 document.createElement = function(create) {
   return function() {
       var ret = create.apply(this, arguments);
@@ -64,7 +70,7 @@ const indexFileProcessor = (instance) => {
 
         indexFileContent = indexFileContent.replace(
           /\<\/head\>/gm,
-          `<link rel="stylesheet" href="main.css">
+          `<link rel="stylesheet" href="main.css">          
         </head>`
         );
 
