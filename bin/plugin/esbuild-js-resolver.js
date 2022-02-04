@@ -5,35 +5,6 @@ const { log, convertMessage } = require('../lib/log');
 
 let vendorFileCache = '';
 
-let elementPostProcessorScript = `
-var componentStore = %STORE%;
-var ngcEsbuildComponentNames = Object.keys(componentStore || []);
-function addNgcEsbuildComponentAttribute(name) {
-  if (ngcEsbuildComponentNames.includes(name)) {
-    document.querySelectorAll(name).forEach( e => {
-      e.setAttribute(componentStore[name], '');
-    });
-  }
-}
-
-ngcEsbuildComponentNames.forEach( name => {
-  document.querySelectorAll(name).forEach( e => {
-    e.setAttribute(componentStore[name], '');
-  });
-});
-
-document.createElement = function(create) {
-  return function() {
-      var ret = create.apply(this, arguments);
-      var sto = setTimeout( () => {
-        clearTimeout(sto);
-        addNgcEsbuildComponentAttribute(ret.tagName.toLowerCase());
-      }, 0);
-      return ret;
-  };
-}(document.createElement);
-`;
-
 const externalModuleConfig = { input: '', inject: false, bundleName: '' };
 const resolveExternalModule = async (instance, options, item = externalModuleConfig) => {
   const itemPath = !/^\//.test(item.input)
@@ -82,13 +53,6 @@ const jsResolver = (instance) => {
       });
       
       build.onEnd(async () => {
-        const postProcessor = elementPostProcessorScript.replace(
-          /\%STORE\%/,
-          JSON.stringify(instance.componentStore)
-        );
-
-        vendorFileCache += `;\n\n${postProcessor}`;
-
         const jsOutputPath = path.join(options.outputPath, `vendor.js`);
         await instance.store.fileWriter(jsOutputPath, vendorFileCache, 'utf8');
       });

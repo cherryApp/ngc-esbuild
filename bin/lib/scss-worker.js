@@ -99,7 +99,7 @@ const scssProcessor = (options = '') => {
             : content;
         return `\n\n/* file: ${scssPath} */\n${content}`;
     }).catch(err => {
-        return `\n\n/* file: ${scssPath} */\n/* ${JSON.stringify(err)} */`;
+        return `\n\n/* file: ${scssPath} */\n/* ${err} */`;
     });
 };
 

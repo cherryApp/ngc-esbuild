@@ -1,9 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const { optimize } = require('svgo');
 
 const { log, convertMessage } = require('../lib/log');
-const esBuilder = require('../lib/builder');
+const publicWorker = require('../lib/scss-worker');
 
 const componentBuffer = {
   num: 1,
@@ -35,6 +34,30 @@ const getValueByPattern = (regex = new RegExp(''), str = '') => {
   }
 
   return results.pop();
+};
+
+const injectStyle = async (options, instance, args, contents = '') => {
+  const styleUrls = getValueByPattern(
+    /^ *styleUrls *\: *\[['"]([^'"\]]*)/gm,
+    contents
+  );
+
+  let fileContent = '';
+  if (styleUrls) {
+    fileContent = await publicWorker.scssProcessor(JSON.stringify({
+      scssPath: path.join(
+        path.dirname(args.path),
+        styleUrls,
+      ),
+      projectDir: instance.workDir,
+      outDir: path.join(instance.workDir, options.outputPath),
+    }));
+  }
+
+  return contents.replace(
+    /^ *styleUrls *\: *\[['"]([^'"\]]*)['"]\]\,*/gm,
+    `    styles: [\`${fileContent}\`],`
+  );
 };
 
 /**
@@ -82,10 +105,12 @@ const angularComponentDecoratorPlugin = (instance) => {
   return {
     name: 'angularComponentProcessor',
     async setup(build) {
+      const options = await instance.getAngularOptions();
 
       build.onLoad({ filter: /src.*\.(component|pipe|service|directive|guard|module)\.ts$/ }, async (args) => {
         // Check the cache.
-        if (!instance.lastUpdatedFileList.includes(args.path) && instance.componentBuffer[args.path]) {
+        const instanceName = path.basename(args.path).replace(/\.[a-zA-Z]*$/, '');
+        if (!instance.lastUpdatedFileList.find( n => n.includes(instanceName) ) && instance.componentBuffer[args.path]) {
           return { contents: instance.componentBuffer[args.path], loader: 'ts' };
         }
 
@@ -104,40 +129,22 @@ const angularComponentDecoratorPlugin = (instance) => {
             contents = `import '@angular/compiler';\n${contents}`;
           }
 
-          // Set component identifier.
-          if (/\@Component/gm.test(contents)) {
-            const m = contents.match(/selector *\: *[\'\"\`]([^\'\"\`]*)/);
-            componentName = m && m[1] ? m[1] : 'na';
-            componentID = `${instance.HOST_ATTR}esb-c${componentBuffer.num}`;
-            instance.componentStore[componentName] = componentID;
-            componentBuffer.num++;
-          }
-
           if (/^ *templateUrl *\: *['"]*([^'"]*)/gm.test(contents)) {
-            const templateUrl = 
+            const templateUrl =
               getValueByPattern(/^ *templateUrl *\: *['"]*([^'"]*)/gm, source);
             contents = `import templateSource from '${templateUrl}';
-            ${contents}`;
+              ${contents}`
+              .replace(
+                /^ *templateUrl *\: *['"]*([^'"]*)['"]/gm,
+                `template: templateSource || ''`
+              );
           }
 
           if (/^ *styleUrls *\: *\[['"]([^'"\]]*)/gm.test(contents)) {
-            const styleUrls = getValueByPattern(
-              /^ *styleUrls *\: *\[['"]([^'"\]]*)/gm,
-              source
-            );
-            contents = `import '${componentID}#|#${styleUrls}';\n${contents}`;
+            contents = await injectStyle(options, instance, args, contents);
           }
 
           contents = addInjects(contents);
-
-          contents = contents.replace(
-            /^ *templateUrl *\: *['"]*([^'"]*)['"]/gm,
-            "template: templateSource || ''"
-          );
-
-          contents = contents.replace(
-            /^ *styleUrls *\: *\[['"]([^'"\]]*)['"]\]\,*/gm, ''
-          );
 
           instance.componentBuffer[args.path] = contents;
 
