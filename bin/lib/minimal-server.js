@@ -1,19 +1,18 @@
 const { WebSocketServer } = require('ws');
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const { exec } = require('child_process');
 const path = require('path');
-const yargs = require('yargs/yargs')
-const { hideBin } = require('yargs/helpers')
-const argv = yargs(hideBin(process.argv)).argv;
 
-const { log, convertMessage } = require('./log');
+const { log } = require('./log');
 
 const serverOptions = {
   root: process.cwd(), // root of the file-server
   fileBuffer: {}, // a buffer to loading files from the memory
   port: 4200, // http port
   open: false, // open in the default browser
+  certDir: '', // directory of certificates
 };
 
 /**
@@ -70,7 +69,8 @@ module.exports = (
     response.end(content);
   };
 
-  const server = http.createServer(async (request, response) => {
+  // Request handler function.
+  const requestHandler = async (request, response) => {
 
     let filePath = '.' + request.url;
     if (filePath == './') {
@@ -127,7 +127,20 @@ module.exports = (
       }
     }
 
-  }).listen(options.port);
+  };
+
+  // Start ssl or non-ssl server.
+  if (options.certDir) {
+    const ssl = {
+      key: fs.readFileSync( path.join(options.certDir, '/privkey.pem'), 'utf8'),
+      cert: fs.readFileSync( path.join(options.certDir, '/cert.pem'), 'utf8'),
+      ca: fs.readFileSync( path.join(options.certDir, '/chain.pem'), 'utf8'),
+    };
+    const server = https.createServer(ssl, requestHandler).listen(options.port);
+  } else {
+    const server = http.createServer(requestHandler).listen(options.port);    
+  }
+
   log(`Angular dev-server is running at http://localhost:${options.port}/`);
 
   const start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');

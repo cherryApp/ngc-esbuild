@@ -580,6 +580,7 @@ const customOptions = {
     serve: true, // start the live-server
     project: '', // project name from the angular.json file
     mode: 'build', // angular.json architect->[mode], build|test|serve ...
+    certDir: '', // directory of ssl certificates
 };
 
 const cleanOptions = (options = {}) => {

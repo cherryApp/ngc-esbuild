@@ -176,6 +176,7 @@ module.exports = class NgEsbuild {
             ? Number(this.options.port) 
             : this.angularOptions.port || 4200,
           open: this.options.open,
+          certDir: this.options.certDir,
         });
         this.liveServerIsRunning = true;
       }
