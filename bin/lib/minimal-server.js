@@ -27,25 +27,13 @@ module.exports = (
   options = { ...serverOptions, ...options };
 
   const wssPort = Number(options.port) - 4200 + 8800;
-  const wss = new WebSocketServer({ port: wssPort });
-  wss.on('connection', function connection(ws) {
-    ws.on('message', function message(data) {
-      log('received: %s', data);
-    });
-
-    ws.send('Esbuild live server started');
-  });
-
-  const broadcast = message => {
-    wss.clients.forEach(function each(client) {
-      if (client.readyState === 1) {
-        client.send(message);
-      }
-    });
-  };
+  let wssLink = `ws://127.0.0.1:${wssPort}`;
+  if (options.certDir) {
+    wssLink = `wss://${location.host}`;
+  }
 
   const clientScript = `<script>
-    const ws = new WebSocket('ws://127.0.0.1:${wssPort}');
+    const ws = new WebSocket(${wssLink});
     ws.onmessage = m => {
       if (m.data === 'location:refresh') {
         location.reload();
@@ -141,6 +129,23 @@ module.exports = (
   } else {
     server = http.createServer(requestHandler).listen(options.port);
   }
+
+  const wss = new WebSocketServer({ server });
+  wss.on('connection', function connection(ws) {
+    ws.on('message', function message(data) {
+      log('received: %s', data);
+    });
+
+    ws.send('Esbuild live server started');
+  });
+
+  const broadcast = message => {
+    wss.clients.forEach(function each(client) {
+      if (client.readyState === 1) {
+        client.send(message);
+      }
+    });
+  };
 
   log(`Angular dev-server is running at http://localhost:${options.port}/`);
 
