@@ -24,7 +24,7 @@ module.exports = (
   options = serverOptions
 ) => {
 
-  options = {...serverOptions, ...options};
+  options = { ...serverOptions, ...options };
 
   const wssPort = Number(options.port) - 4200 + 8800;
   const wss = new WebSocketServer({ port: wssPort });
@@ -130,15 +130,16 @@ module.exports = (
   };
 
   // Start ssl or non-ssl server.
+  let server = null;
   if (options.certDir) {
     const ssl = {
-      key: fs.readFileSync( path.join(options.certDir, '/privkey.pem'), 'utf8'),
-      cert: fs.readFileSync( path.join(options.certDir, '/cert.pem'), 'utf8'),
-      ca: fs.readFileSync( path.join(options.certDir, '/chain.pem'), 'utf8'),
+      key: fs.readFileSync(path.join(options.certDir, '/privkey.pem'), 'utf8'),
+      cert: fs.readFileSync(path.join(options.certDir, '/cert.pem'), 'utf8'),
+      ca: fs.readFileSync(path.join(options.certDir, '/chain.pem'), 'utf8'),
     };
-    const server = https.createServer(ssl, requestHandler).listen(options.port);
+    server = https.createServer(ssl, requestHandler).listen(options.port);
   } else {
-    const server = http.createServer(requestHandler).listen(options.port);    
+    server = http.createServer(requestHandler).listen(options.port);
   }
 
   log(`Angular dev-server is running at http://localhost:${options.port}/`);
