@@ -27,7 +27,7 @@ module.exports = (
   options = { ...serverOptions, ...options };
 
   const wssPort = Number(options.port) - 4200 + 8800;
-  let wssLink = `'ws://127.0.0.1:${wssPort}'`;
+  let wssLink = '`ws://${location.host}`';
   if (options.certDir) {
     wssLink = '`wss://${location.host}`';
   }
