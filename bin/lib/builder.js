@@ -1,6 +1,6 @@
 const path = require('path');
 
-const { build } = require('esbuild');
+const { build, analyzeMetafile } = require('esbuild');
 
 /**
    * Wrapper method to use esbuild.
@@ -22,5 +22,14 @@ module.exports = (options = {}) => {
     plugins: [],
   };
 
-  return build(({...defaultOptions, ...options}));
+  return build(({...defaultOptions, ...options})).then(
+    async result => {
+      // Post processing.
+      if (options.metafile) {
+        let text = await analyzeMetafile(result.metafile);
+        console.log(text);
+        return result;
+      }
+    }
+  );
 }
