@@ -28,8 +28,8 @@ module.exports = (options = {}) => {
       if (options.metafile) {
         let text = await analyzeMetafile(result.metafile);
         console.log(text);
-        return result;
       }
+      return result;
     }
   );
 }
